@@ -43,7 +43,7 @@ class Main:
         self.move_label()
 
         # 뉴스 라벨 클릭 이벤트 바인딩
-        self.news_label.bind("<Button-1>", lambda e: webbrowser.open(self.articles[self.current_index]["link"]))
+        self.news_label.bind("<Button-1>", lambda e: webbrowser.open(self.articles[self.current_index - 1]["link"]))
         # 뉴스 표시
         self.display_news()
          # 버튼 생성 및 배치
