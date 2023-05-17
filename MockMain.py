@@ -1,0 +1,294 @@
+from server import*
+import stock_search
+import mock_Stock
+import pickle
+class MockInvestmentApp:
+    def __init__(self):
+        self.root = Tk()
+        self.root.title("주식 모의투자 앱")
+        self.root.geometry("475x440")
+        self.ticker =''
+        self.initBuy = False
+        self.balance = 1000000  # 초기 잔액 설정
+        self.stocks = [] 
+        self.Sellamount = 0
+        self.create_widgets()
+        self.root.mainloop()
+
+    def calculate_buy_total(self):
+
+        self.amount = int(self.stock_buy_amount_entry.get())
+        stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
+        self.total_price = stock_price * self.amount
+        if self.total_price > 0:
+            self.buy_total_label['text'] = f"{self.amount}주 x {stock_price}원 : {self.total_price} 원"
+       
+             
+    def calculate_Sell_total(self):
+        self.Sellamount = int(self.stock_sell_amount_entry.get())
+        if  self.amount > self.Sellamount:
+            stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
+            self.total_price = stock_price * self.Sellamount
+            self.buy_total_label['text'] = f"{self.Sellamount}주 x {stock_price}원 : {self.total_price} 원"
+
+            
+
+    def buy_stock(self):
+
+        if self.balance - self.total_price > 0:
+            self.currentStock = mock_Stock.STOCK(name = self.sl_name, ticker = self.ticker, price= self.total_price // self.amount, amount= self.amount)
+            self.balance -= self.total_price
+
+            existing_stock = None
+            for stock in self.stocks:
+                if stock.getTicker() == self.ticker:
+                    existing_stock = stock
+                    break
+            
+            if existing_stock is None:
+                self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price // self.amount, amount=self.amount)
+                self.stocks.append(self.currentStock)
+            else:
+                existing_stock.update_amount(self.amount)
+
+            self.update_portfolio_listbox()
+            self.update_sell_option_menu()
+        # 새로 추가된 메소드 호출
+        else:
+            messagebox.showinfo("Error", "잔액이 부족합니다")
+        self.balance_label['text'] = f"잔액: {self.balance} 원"
+  
+    def sell_stock(self):
+        # 선택한 주식의 ticker
+        self.stockName = self.sell_stock_var.get()
+        existing_stock = None
+        for stock in self.stocks:
+            if stock.getTicker() == self.ticker:
+                existing_stock = stock
+                break
+
+        if existing_stock.getAmount() >= self.Sellamount:
+            existing_stock.update_Sell_amount(self.Sellamount)
+            if existing_stock.getAmount() == 0:
+                del existing_stock 
+            # 매도한 주식의 가격을 잔액에 추가
+            stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
+            total_price = int(stock_price) * self.Sellamount
+            self.balance += total_price
+            # 잔액 업데이트
+            self.balance_label['text'] = f"잔액: {self.balance} 원"
+
+            # 매도 옵션 메뉴 업데이트
+            self.update_sell_option_menu()
+            self.update_portfolio_listbox()
+        else:
+            messagebox.showinfo("Error", "판매할 주식이 부족합니다.")
+    
+    def calculate_profit(self, stock):
+        # 현재 가격 구하기
+        self.ticker =stock.getTicker()
+        current_price = self.get_data()['Close'][-1]
+        # 구매 가격 구하기
+        purchase_price = stock.get_per_Price()
+        # 수익률 계산하기
+        profit_rate = (current_price - purchase_price) / purchase_price * 100
+        return profit_rate
+
+    def update_portfolio_listbox(self):
+        # 리스트 박스 초기화
+        self.portfolio_listbox.delete(0, END)
+
+        # 딕셔너리에 저장된 주식 정보를 리스트 박스에 추가
+        for s in self.stocks:
+            profit_rate = self.calculate_profit(s) 
+            self.portfolio_listbox.insert(END, f"{s.getName()}: {s.get_total_Price()} 원 | {s.getAmount()} 주 | 수익률: {profit_rate:.2f}%")
+    def update_sell_option_menu(self):
+        # 메뉴 초기화
+        self.sell_stock_option['menu'].delete(0, 'end')
+        # 사용자가 보유한 주식 종목 추가
+        for ticker in self.stocks:
+            self.sell_stock_option['menu'].add_command(label=ticker.getName(), command=lambda t=ticker.getName(): self.sell_stock_var.set(t))
+
+    def create_widgets(self):
+          # Notebook 생성
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill='both', expand=True)
+        # 주식 검색 탭
+        self.stock_search_frame = Frame(self.notebook)
+        self.notebook.add(self.stock_search_frame, text="메인 메뉴")
+        # 포트폴리오 탭
+        self.portfolio_frame = Frame(self.notebook)
+        self.notebook.add(self.portfolio_frame, text="포트폴리오")
+        # 포트폴리오 Frame
+        self.portfolio_listbox = Listbox(self.portfolio_frame,width=40)
+        self.portfolio_listbox.pack(padx=20, pady=20)
+        self.sav_button = Button(self.portfolio_frame, text="저장", command=self.save_stocks)
+        self.sav_button.place(x=290, y=200, width=30, height=30)
+        self.sav_button = Button(self.portfolio_frame, text="불러오기", command=self.load_stocks)
+        self.sav_button.place(x=330, y=200, width=50, height=30)
+
+        #검색 frame
+        self.sell_stock_var = StringVar(self.stock_search_frame)
+        self.sell_stock_option = OptionMenu(self.stock_search_frame, self.sell_stock_var, [])
+        self.sell_stock_option.place(x=200, y=320, width=100, height=20)
+        self.update_sell_option_menu()  # 새로 추가된 메소드 호출
+        self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:")
+        self.search_stock_label.place(x=5, y=30, width=100, height=14)
+        self.stock_name_entry = Entry(self.stock_search_frame)
+        self.stock_name_entry.place(x=150, y=30, width=150, height=20)
+        self.search_button = Button(self.stock_search_frame, text="검색", command=self.search_stock)
+        self.search_button.place(x=350, y=10, width=100, height=100)
+        self.stocks_label = Label(self.stock_search_frame, text="검색결과:")
+        self.stocks_label.place(x=0, y=100, width=100, height=20)
+
+        self.stocks_name = Label(self.stock_search_frame, text="")
+        self.stocks_name.place(x=140, y=80, width=130, height=20)
+        self.stock_open_label = Label(self.stock_search_frame, text="")
+        self.stock_open_label.place(x=150, y=100, width=110, height=20)
+        self.stock_high_label = Label(self.stock_search_frame, text="")
+        self.stock_high_label.place(x=150, y=120, width=110, height=20)
+        self.stock_low_label = Label(self.stock_search_frame, text="")
+        self.stock_low_label.place(x=150, y=140, width=110, height=20)
+        self.stock_close_label = Label(self.stock_search_frame, text="")
+        self.stock_close_label.place(x=150, y=160, width=110, height=20)
+     
+        # 모의 투자
+        self.balance_label = Label(self.stock_search_frame, text=f"잔액: {self.balance} 원")
+        self.balance_label.place(x=10, y=210, width=100, height=20)        
+        self.buy_stock_button = Button(self.stock_search_frame, text="매수", command= self.buy_stock)
+        self.buy_stock_button.place(x=350, y=210, width=100, height=100)
+        self.sell_stock_button = Button(self.stock_search_frame, text="매도", command=self.sell_stock)
+        self.sell_stock_button.place(x=350, y=320, width=100, height=100)        
+        self.buy_label = Label(self.stock_search_frame, text="매수 수량 :")
+
+        self.buy_label.place(x=50, y=240, width=100, height=20)        
+        self.stock_buy_amount_entry = Entry(self.stock_search_frame)
+        self.stock_buy_amount_entry.place(x=150, y=240, width=150, height=20)
+        self.buy_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_buy_total)
+        self.buy_confirm_button.place(x=305, y=235, width=30, height=30)
+        self.buy_total_label = Label(self.stock_search_frame, text="")
+        self.buy_total_label.place(x=150, y=270, width=170, height=20)
+
+
+        self.sell_label = Label(self.stock_search_frame, text="매도 수량 :")
+        self.sell_label.place(x=50, y=360, width=100, height=20)        
+        self.stock_sell_amount_entry = Entry(self.stock_search_frame)
+        self.stock_sell_amount_entry.place(x=150, y=360, width=150, height=20)
+        self.sell_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_Sell_total)
+        self.sell_confirm_button.place(x=305, y=355, width=30, height=30)
+
+        XLine = Canvas(self.stock_search_frame, width=470, height=1, bg='black')
+        XLine.place(x=0, y=1)
+        XLine = Canvas(self.stock_search_frame, width=470, height=1, bg='black')
+        XLine.place(x=0, y=200)
+      
+        XLine = Canvas(self.stock_search_frame, width=470, height=1, bg='black')
+        XLine.place(x=0, y=430)
+        YLine = Canvas(self.stock_search_frame, width=1, height=430, bg='black')
+        YLine.place(x= 470, y= 0)
+        YLine = Canvas(self.stock_search_frame, width=1, height=430, bg='black')
+        YLine.place(x= 1, y= 0)
+        self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:")
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
+
+    def on_tab_change(self, event):
+        selected_tab = self.notebook.tab(self.notebook.select(), "text")
+        if selected_tab == "포트폴리오":
+            self.update_portfolio_listbox()
+
+    def save_stocks(self):
+        with open('stocks.pkl', 'wb') as f:
+            pickle.dump(self.stocks, f)
+            messagebox.showinfo("알림", "저장 완료")
+
+    def load_stocks(self):
+        try:
+            with open('stocks.pkl', 'rb') as f:
+                self.stocks = pickle.load(f)
+                messagebox.showinfo("알림", "불러오기 완료")
+        except FileNotFoundError:
+            messagebox.showinfo("알림", "저장된 정보가 없습니다")
+
+    def display_companies(self, companies, start):
+        for i in range(5):
+            if start + i < len(companies):
+                company_name = list(companies.keys())[start + i]
+                self.results_listbox.insert(END, company_name)
+            else:
+                break
+
+
+    def next_page(self):
+        self.start_index += 5
+        self.results_listbox.delete(0, END)
+        self.display_companies(self.results, self.start_index)
+
+    def prev_page(self):
+        if self.start_index > 0:
+            self.start_index -= 5
+            self.results_listbox.delete(0, END)
+            self.display_companies(self.results, self.start_index)
+
+    def show_search_results(self):
+        stockName =  self.stock_name_entry.get()
+        self.results = stock_search.search_companies_naver(stockName)
+        if self.results:
+            self.search_results_window = Toplevel(self.root)
+            self.search_results_window.title("검색 결과")
+            self.results_listbox = Listbox(self.search_results_window, selectmode=SINGLE)
+
+            self.start_index = 0
+            self.display_companies(self.results, self.start_index)
+
+            self.results_listbox.pack(padx=20, pady=20)
+
+            prev_button = Button(self.search_results_window, text="Prev", command=self.prev_page)
+            prev_button.pack(side=LEFT)
+
+            next_button = Button(self.search_results_window, text="Next", command=self.next_page)
+            next_button.pack(side=RIGHT)
+
+            select_button = Button(self.search_results_window, text="선택", command=self.on_result_select)
+            select_button.pack(padx=20, pady=20)
+      
+
+    
+    def on_result_select(self):
+        self.selected_index = self.results_listbox.curselection()
+        self.initBuy = False
+        if self.selected_index:
+            key = self.results_listbox.get(self.selected_index[0])
+            self.ticker = self.results[key]
+            self.show_Select_INFO(key)
+            
+            self.search_results_window.destroy()
+            self.plot_data()
+
+    def show_Select_INFO(self,name):
+        data = self.get_data()
+        self.stocks_name['text'] = name
+        self.sl_name = name
+        self.stock_open_label['text'] = f'시가: {data["Open"][-1]}'
+        self.stock_high_label['text'] = f'고가: {data["High"][-1]}'
+        self.stock_low_label['text'] = f'저가: {data["Low"][-1]}'
+        self.stock_close_label['text'] = f'종가: {data["Close"][-1]}'
+       
+
+    def get_data(self):
+        stock = yf.Ticker(self.ticker)
+        data = stock.history(period="1d", interval="1m")  # 1분 간격의 1일 데이터
+        return data[['Open', 'High', 'Low', 'Close']]
+    def plot_data(self):
+        data = self.get_data()
+        figure1 = plt.Figure(figsize=(6,5), dpi=100)
+        ax1 = figure1.add_subplot(111)
+        df = DataFrame(data,columns=['Open','High','Low','Close'])
+        df.plot(kind='line', legend=True, ax=ax1, fontsize=10)
+        ax1.set_title('Stock Data (Open, High, Low, Close)')
+    
+    def search_stock(self):
+        self.show_search_results()
+
+
+if __name__ == "__main__":
+    app = MockInvestmentApp()
