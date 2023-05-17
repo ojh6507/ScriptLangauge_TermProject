@@ -5,7 +5,6 @@ import requests
 
 import threading
 from tkinter import *
-from tkinter import Toplevel, ttk
 import tkinter.messagebox as messagebox
 
 from datetime import datetime, timedelta
