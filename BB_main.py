@@ -8,7 +8,7 @@ supported_intervals = ["60m", "1h", "1d", "5d", "1wk", "1mo", "3mo"]
 ticker = ''
 class BBMain:
     def display_companies(self, companies, start):
-        for i in range(5):
+        for i in range(10):
             if start + i < len(companies):
                 company_name = list(companies.keys())[start + i]
                 self.results_listbox.insert(END, company_name)
@@ -29,7 +29,7 @@ class BBMain:
     def show_search_results(self):
         global ticker
         if self.results:
-            if self.market == 'Nasdaq':
+            if self.market.get() == 'Nasdaq':
                 self.search_results_window = Toplevel(self.root)
                 self.search_results_window.title("검색 결과")
                 self.results_listbox = Listbox(self.search_results_window, selectmode=SINGLE)
@@ -41,10 +41,11 @@ class BBMain:
                 select_button = Button(self.search_results_window, text="선택", command = self.on_result_select)
                 select_button.pack(padx=20, pady=20)
 
-            elif self.market == 'kor':
+            elif self.market.get() == 'Kor':
                 if isinstance(self.results,list):
                     ticker = self.results[0]
                     self.update_chart_thread()
+
                 elif isinstance(self.results, dict):
                     self.search_results_window = Toplevel(self.root)
                     self.search_results_window.title("검색 결과")
@@ -57,10 +58,8 @@ class BBMain:
 
                     prev_button = Button(self.search_results_window, text="Prev", command=self.prev_page)
                     prev_button.pack(side=LEFT)
-
                     next_button = Button(self.search_results_window, text="Next", command=self.next_page)
                     next_button.pack(side=RIGHT)
-
                     select_button = Button(self.search_results_window, text="선택", command=self.on_result_select)
                     select_button.pack(padx=20, pady=20)
         else:
@@ -73,19 +72,21 @@ class BBMain:
             if isinstance(self.results, dict):
                 key = self.results_listbox.get(self.selected_index[0])
                 ticker = self.results[key]
-                print('ticker: ',ticker)
             else:
                 ticker = self.results[self.selected_index[0]]
             self.search_results_window.destroy()
             self.update_chart_thread()
     
     def search_stock(self):
-        company_name = self.company_entry.get()
-        self.market, self.results = search_tickers_by_name(company_name)
-        if self.results:
-            self.show_search_results()
+        if self.market.get():
+            company_name = self.company_entry.get()
+            self.results = search_tickers_by_name(self.market.get(), company_name)
+            if self.results:
+                self.show_search_results()
+            else:
+                self.action_label.config(text="검색 결과를 찾을 수 없습니다.")
         else:
-            self.action_label.config(text="검색 결과를 찾을 수 없습니다.")
+                self.action_label.config(text="증시를 선택해주세요")
 
 
     def update_chart_thread(self):
@@ -180,7 +181,6 @@ class BBMain:
         self.interval_var.set("1d")  # default value
         self.interval_var.trace("w", self.update_window)
 
-
         
         self.interval_optionmenu = OptionMenu(self.root, self.interval_var, *supported_intervals)
         self.window_var = IntVar(self.root)
@@ -189,26 +189,35 @@ class BBMain:
         self.company_label = Label(self.root, text="회사 이름:")
         self.company_label.pack()
         self.company_entry = Entry(self.root)
+        
+          
         self.company_entry.pack()
 
         self.search_button = Button(self.root, text="검색", command=self.search_stock)
-        self.search_button.pack()
-
+        self.search_button.place(x=680, y=20, width=50, height=20)
+      
+        self.market = StringVar()
+        Nasdaq_bt = Radiobutton(self.root, text="나스닥", value="Nasdaq",variable=self.market, command =  self.ChangeMarket)
+        Nasdaq_bt.pack()
+        korea_bt = Radiobutton(self.root, text="코스피/코스닥",  value="Kor", variable=self.market, command=  self.ChangeMarket)
+        korea_bt.pack()
+        korea_bt.select()
+        
         self.window_label = Label(self.root, text="이동 평균 기간 선택:")
         self.window_label.pack()
+        window_spinbox = Spinbox(self.root, from_=1, to=100, textvariable=self.window_var)
+        window_spinbox.pack()
+        
         self.interval_label = Label(self.root, text="주기 선택:")
-        self.interval_label.pack()
+        self.interval_label.place(x=470, y=138, width=100, height=20)
         self.interval_optionmenu.pack()
       
-        window_spinbox = Spinbox(self.root, from_=1, to=100, textvariable=self.window_var)
-      
-        window_spinbox.pack()
 
         update_button = Button(self.root, text="차트 업데이트", command=self.update_chart_thread)
-        update_button.pack()
+        update_button.place(x=1000, y=15, width=150, height=150)
 
-        self.action_label = Label(self.root, text="현재 주가에 대한 추천:")
-        self.action_label.pack()
+        self.action_label = Label(self.root, text="현재 주가에 대한 추천:", font=("Arial", 15))
+        self.action_label.place(x=0, y=50, width=300, height=40)
 
         self.fig = plt.figure(figsize=(12, 6))
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
@@ -217,7 +226,9 @@ class BBMain:
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_window_close(self.root))
         self.update_chart()
         self.root.mainloop()
-        # 창 종료 이벤트 처리 함수
+    def ChangeMarket(self):
+        print("change Market-Debug: ", self.market.get())
+    # 창 종료 이벤트 처리 함수
     def on_window_close(self, root):
         global ticker
         ticker =''
