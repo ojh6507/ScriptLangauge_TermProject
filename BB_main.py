@@ -181,7 +181,6 @@ class BBMain:
         self.interval_var.set("1d")  # default value
         self.interval_var.trace("w", self.update_window)
 
-        
         self.interval_optionmenu = OptionMenu(self.root, self.interval_var, *supported_intervals)
         self.window_var = IntVar(self.root)
         self.window_var.set(20)  # default value
@@ -189,19 +188,17 @@ class BBMain:
         self.company_label = Label(self.root, text="회사 이름:")
         self.company_label.pack()
         self.company_entry = Entry(self.root)
-        
-          
         self.company_entry.pack()
 
         self.search_button = Button(self.root, text="검색", command=self.search_stock)
         self.search_button.place(x=680, y=20, width=50, height=20)
       
-        self.market = StringVar()
-        Nasdaq_bt = Radiobutton(self.root, text="나스닥", value="Nasdaq",variable=self.market, command =  self.ChangeMarket)
+        self.market = StringVar(value ='Kor')
+        Nasdaq_bt = Radiobutton(self.root, text="나스닥",value = 'Nasdaq',variable=self.market,  command=  self.ChangeMarket)
         Nasdaq_bt.pack()
-        korea_bt = Radiobutton(self.root, text="코스피/코스닥",  value="Kor", variable=self.market, command=  self.ChangeMarket)
+        korea_bt = Radiobutton(self.root, text="코스피/코스닥",value = 'Kor', variable=self.market, command= self.ChangeMarket)
         korea_bt.pack()
-        korea_bt.select()
+       
         
         self.window_label = Label(self.root, text="이동 평균 기간 선택:")
         self.window_label.pack()
@@ -212,9 +209,8 @@ class BBMain:
         self.interval_label.place(x=470, y=138, width=100, height=20)
         self.interval_optionmenu.pack()
       
-
-        update_button = Button(self.root, text="차트 업데이트", command=self.update_chart_thread)
-        update_button.place(x=1000, y=15, width=150, height=150)
+        update_button = Button(self.root, text="차트 업데이트",font=("Arial", 15), command=self.update_chart_thread)
+        update_button.place(x=1000, y=15, width=150, height=130)
 
         self.action_label = Label(self.root, text="현재 주가에 대한 추천:", font=("Arial", 15))
         self.action_label.place(x=0, y=50, width=300, height=40)
@@ -227,7 +223,10 @@ class BBMain:
         self.update_chart()
         self.root.mainloop()
     def ChangeMarket(self):
-        print("change Market-Debug: ", self.market.get())
+       if self.market.get() == 'Kor':
+           self.market.set('Nasdaq')
+       else:
+           self.market.set('Kor')
     # 창 종료 이벤트 처리 함수
     def on_window_close(self, root):
         global ticker
