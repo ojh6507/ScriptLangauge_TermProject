@@ -1,7 +1,9 @@
+import BB_main
 import tkinter as tk
 from tkinter import ttk
 import requests
 import webbrowser
+import MockMain
 from io import BytesIO
 from server import Client 
 class Main:
@@ -10,9 +12,11 @@ class Main:
 
     def on_simulation_click(self):
         print("모의 투자 메뉴를 선택했습니다.")
+        MockMain.MockInvestmentApp()
 
     def on_bollinger_click(self):
         print("볼린저 밴드 분석 메뉴를 선택했습니다.")
+        BB_main.BBMain()
     
 
     def __init__(self):
