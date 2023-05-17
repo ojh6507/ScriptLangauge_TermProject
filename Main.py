@@ -1,11 +1,9 @@
 import BB_main
-import tkinter as tk
-from tkinter import ttk
 import requests
 import webbrowser
 import MockMain
 from io import BytesIO
-from server import Client 
+from server import *
 class Main:
     def on_portfolio_click(self):
         print("포트폴리오 메뉴를 선택했습니다.")
@@ -21,19 +19,19 @@ class Main:
 
     def __init__(self):
         # 창 생성
-        window = tk.Tk()
+        window = Tk()
         window.title("MENU")
         window.geometry("300x130")
         window.rowconfigure(4, weight=1)  # row 4의 크기를 조정 가능하도록 설정
         window.columnconfigure(0, weight=1)  # column 0의 크기를 조정 가능하도록 설정
 
         # 프레임 생성
-        frame = ttk.Frame(window)
+        frame = Frame(window)
         frame.grid(column=0, row=0, sticky="nsew")
    
        # 뉴스 프레임 생성 (높이 100으로 변경)
         self.current_index = 0
-        self.news_frame = tk.Frame(window, width=330, height=30, bg="blue")
+        self.news_frame = Frame(window, width=330, height=30, bg="blue")
         self.news_frame.grid(column=0, row=5, sticky="ew")
 
         # 뉴스 정보 가져오기
@@ -42,7 +40,7 @@ class Main:
         self.news_title = self.articles[self.current_index]["title"]
 
         # 라벨 배경색 변경 및 높이 설정
-        self.news_label = tk.Label(self.news_frame, bg="blue", fg="yellow")
+        self.news_label = Label(self.news_frame, bg="blue", fg="yellow")
         self.news_label.place(x=330, y=0)  # 라벨을 프레임 내에서 초기 위치로 설정
         self.move_label()
 
@@ -51,13 +49,13 @@ class Main:
         # 뉴스 표시
         self.display_news()
          # 버튼 생성 및 배치
-        portfolio_button = tk.Button(frame, text="포트폴리오", command=self.on_portfolio_click,height=3)
+        portfolio_button = Button(frame, text="포트폴리오", command=self.on_portfolio_click,height=3)
         portfolio_button.grid(column=0, row=0, padx=10, pady=15)
 
-        simulation_button = tk.Button(frame, text="모의 투자", command=self.on_simulation_click,height=3)
+        simulation_button = Button(frame, text="모의 투자", command=self.on_simulation_click,height=3)
         simulation_button.grid(column=1, row=0, padx=10, pady=15)
 
-        bollinger_button = tk.Button(frame, text="볼린저 밴드 분석", command=self.on_bollinger_click,height=3)
+        bollinger_button = Button(frame, text="볼린저 밴드 분석", command=self.on_bollinger_click,height=3)
         bollinger_button.grid(column=2, row=0, padx=10, pady=15)
         window.mainloop()
 
