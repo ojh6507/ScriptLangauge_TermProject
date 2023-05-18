@@ -79,7 +79,10 @@ class BBMain:
     
     def search_stock(self):
         if self.market.get():
-    
+            self.fig.clf()
+            self.gfig.clf()
+            self.gcanvas.draw()
+            self.canvas.draw()
             company_name = self.company_entry.get()
             self.results = search_tickers_by_name(self.market.get(), company_name)
             if self.results:
@@ -142,21 +145,18 @@ class BBMain:
             window = self.window_var.get()
 
             stock_data = download_stock_data(ticker, start_date, end_date, interval)
-            if self.currentTab == '볼린저밴드':
-                stock_data = calculate_bollinger_bands(stock_data, window)
+         
+            stock_data = calculate_bollinger_bands(stock_data, window)
                 # Get company name
             stock_ticker = yf.Ticker(ticker)
             company_info = stock_ticker.info
             company_name = company_info.get('shortName', ticker)
 
-            self.fig.clf()
             if not stock_data.empty:
               
                 if self.currentTab == '볼린저밴드':
                     action = analyze_bollinger_bands(stock_data)
                     self.action_label.config(text=f"현재 주가에 대한 추천: {action}")
-                    
-                    self.fig.clf()
                     ax = self.fig.add_subplot(111)
                     
                     ax.plot(stock_data.index, stock_data['Close'], label='Close', color='blue')
@@ -170,8 +170,8 @@ class BBMain:
                     ax.legend(loc="best")
                     
                 else:
-                    self.gfig.clf()
                     ax2 = self.gfig.add_subplot(111)
+
                     ohlc_data = stock_data[['Open', 'High', 'Low', 'Close']].resample('10D').ohlc()
                     ohlc_data.reset_index(inplace=True)
                     ohlc_data['Date'] = ohlc_data['Date'].map(mdates.date2num)
@@ -185,10 +185,9 @@ class BBMain:
             else:
                  self.action_label.config(text="주가 데이터를 찾을 수 없습니다.")
             
+            self.hide_loading_screen(loading_screen, progressbar) 
             self.canvas.draw()
             self.gcanvas.draw()
-            self.hide_loading_screen(loading_screen, progressbar)
-
 
     def update_window(self, *args):
         interget = self.interval_var.get()
@@ -268,10 +267,10 @@ class BBMain:
         selected_tab = self.notebook.tab(self.notebook.select(), "text")
         if selected_tab == "그래프":
             self.currentTab ='그래프'
-            self.update_chart()
+          
         elif selected_tab == "볼린저밴드":
             self.currentTab = '볼린저밴드'
-            self.update_chart()
+         
             
     def ChangeMarket(self):
        
