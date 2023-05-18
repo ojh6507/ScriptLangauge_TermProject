@@ -1,21 +1,25 @@
-import numpy as np
-import yfinance as yf
-from bs4 import BeautifulSoup
 import requests
-
-import threading
-from tkinter import *
-import tkinter.messagebox as messagebox
-
-from datetime import datetime, timedelta
-
 import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import threading
+import numpy as np
 import pandas as pd
+from tkinter import *
+import yfinance as yf
+from tkinter import ttk
+from bs4 import BeautifulSoup
+import tkinter.messagebox as messagebox
+import matplotlib.pyplot as plt
+
+from mplfinance.original_flavor import candlestick_ohlc
+import matplotlib.dates as mdates
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from pandas import DataFrame
 from pandas_datareader import data as pdr
+from datetime import datetime, timedelta
 import urllib.parse
+
 
 #naver Client
 class Client:
