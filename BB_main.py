@@ -79,6 +79,7 @@ class BBMain:
     
     def search_stock(self):
         if self.market.get():
+    
             company_name = self.company_entry.get()
             self.results = search_tickers_by_name(self.market.get(), company_name)
             if self.results:
@@ -141,7 +142,8 @@ class BBMain:
             window = self.window_var.get()
 
             stock_data = download_stock_data(ticker, start_date, end_date, interval)
-            stock_data = calculate_bollinger_bands(stock_data, window)
+            if self.currentTab == '볼린저밴드':
+                stock_data = calculate_bollinger_bands(stock_data, window)
                 # Get company name
             stock_ticker = yf.Ticker(ticker)
             company_info = stock_ticker.info
@@ -149,24 +151,44 @@ class BBMain:
 
             self.fig.clf()
             if not stock_data.empty:
-                action = analyze_bollinger_bands(stock_data)
-                self.action_label.config(text=f"현재 주가에 대한 추천: {action}")
+              
+                if self.currentTab == '볼린저밴드':
+                    action = analyze_bollinger_bands(stock_data)
+                    self.action_label.config(text=f"현재 주가에 대한 추천: {action}")
+                    
+                    self.fig.clf()
+                    ax = self.fig.add_subplot(111)
+                    
+                    ax.plot(stock_data.index, stock_data['Close'], label='Close', color='blue')
+                    ax.plot(stock_data.index, stock_data['Moving Average'], label='Moving Average', color='red')
+                    ax.plot(stock_data.index, stock_data['Upper Band'], label='Upper Band', color='green')
+                    ax.plot(stock_data.index, stock_data['Lower Band'], label='Lower Band', color='orange')
+                    ax.fill_between(stock_data.index, stock_data['Lower Band'], stock_data['Upper Band'], color='gray', alpha=0.2)
+                    ax.set_title(f"{company_name} Bollinger Bands")
+                    ax.set_xlabel("Date")
+                    ax.set_ylabel("Price")
+                    ax.legend(loc="best")
+                    
+                else:
+                    self.gfig.clf()
+                    ax2 = self.gfig.add_subplot(111)
+                    ohlc_data = stock_data[['Open', 'High', 'Low', 'Close']].resample('10D').ohlc()
+                    ohlc_data.reset_index(inplace=True)
+                    ohlc_data['Date'] = ohlc_data['Date'].map(mdates.date2num)
 
-                self.fig.clf()
-                ax = self.fig.add_subplot(111)
-                ax.plot(stock_data.index, stock_data['Close'], label='Close', color='blue')
-                ax.plot(stock_data.index, stock_data['Moving Average'], label='Moving Average', color='red')
-                ax.plot(stock_data.index, stock_data['Upper Band'], label='Upper Band', color='green')
-                ax.plot(stock_data.index, stock_data['Lower Band'], label='Lower Band', color='orange')
-                ax.fill_between(stock_data.index, stock_data['Lower Band'], stock_data['Upper Band'], color='gray', alpha=0.2)
-                ax.set_title(f"{company_name} Bollinger Bands")
-                ax.set_xlabel("Date")
-                ax.set_ylabel("Price")
-                ax.legend(loc="best")
+                    candlestick_ohlc(ax2, ohlc_data.values, width=0.6, colorup='g', colordown='r')
+                    ax2.xaxis_date()
+                    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+                    ax2.set_title(f"{company_name} Candlestick Chart")
+                    ax2.set_xlabel("Date")
+                    ax2.set_ylabel("Price")
             else:
                  self.action_label.config(text="주가 데이터를 찾을 수 없습니다.")
+            
             self.canvas.draw()
+            self.gcanvas.draw()
             self.hide_loading_screen(loading_screen, progressbar)
+
 
     def update_window(self, *args):
         interget = self.interval_var.get()
@@ -175,13 +197,28 @@ class BBMain:
 
     def __init__(self):
         self.root = Tk()
-        self.root.title("Bollinger Bands Analyzer")
+        self.root.title("Stock Analyzer")
+        
+        #탭 추가
+        self.notebook = ttk.Notebook(self.root)
+        self.graph_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.graph_tab, text='그래프')
+
+        self.gfig = plt.figure(figsize=(12, 6))
+        self.gcanvas = FigureCanvasTkAgg(self.gfig, master=self.graph_tab)
+        self.gcanvas.get_tk_widget().pack()
+    
+        # 볼린저밴드 탭
+        self.bb_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.bb_tab, text='볼린저밴드')
+       
 
         self.interval_var = StringVar( self.root)
         self.interval_var.set("1d")  # default value
         self.interval_var.trace("w", self.update_window)
 
         self.interval_optionmenu = OptionMenu(self.root, self.interval_var, *supported_intervals)
+        
         self.window_var = IntVar(self.root)
         self.window_var.set(20)  # default value
 
@@ -204,7 +241,6 @@ class BBMain:
         self.window_label.pack()
         window_spinbox = Spinbox(self.root, from_=1, to=100, textvariable=self.window_var)
         window_spinbox.pack()
-        
         self.interval_label = Label(self.root, text="주기 선택:")
         self.interval_label.place(x=470, y=138, width=100, height=20)
         self.interval_optionmenu.pack()
@@ -212,21 +248,40 @@ class BBMain:
         update_button = Button(self.root, text="차트 업데이트",font=("Arial", 15), command=self.update_chart_thread)
         update_button.place(x=1000, y=15, width=150, height=130)
 
-        self.action_label = Label(self.root, text="현재 주가에 대한 추천:", font=("Arial", 15))
+        self.notebook.pack(expand=1, fill='both')
+        self.action_label = Label(self.root, text="현재 주가에 대한 추천: ", font=("Arial", 15))
         self.action_label.place(x=0, y=50, width=300, height=40)
+        self.market_label = Label(self.root, text="Stock Market : KOSPI / KOSDAQ", font=("Arial", 13))
+        self.market_label.place(x=20, y=100, width=300, height=40)
 
         self.fig = plt.figure(figsize=(12, 6))
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.bb_tab)
         self.canvas.get_tk_widget().pack()
-
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_window_close(self.root))
+        self.currentTab = '그래프'
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
         self.update_chart()
+
         self.root.mainloop()
+
+    def on_tab_change(self, event):
+        selected_tab = self.notebook.tab(self.notebook.select(), "text")
+        if selected_tab == "그래프":
+            self.currentTab ='그래프'
+            self.update_chart()
+        elif selected_tab == "볼린저밴드":
+            self.currentTab = '볼린저밴드'
+            self.update_chart()
+            
     def ChangeMarket(self):
+       
        if self.market.get() == 'Kor':
            self.market.set('Nasdaq')
+           self.market_label.config ( text= "Stock Market : NASDAQ")
        else:
            self.market.set('Kor')
+           self.market_label.config ( text= "Stock Market : KOSPI / KOSDAQ")
+    
     # 창 종료 이벤트 처리 함수
     def on_window_close(self, root):
         global ticker
