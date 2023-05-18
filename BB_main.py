@@ -81,6 +81,8 @@ class BBMain:
         if self.market.get():
             self.fig.clf()
             self.gfig.clf()
+            self.rsi_fig.clf()
+            
             self.gcanvas.draw()
             self.canvas.draw()
             company_name = self.company_entry.get()
@@ -94,7 +96,10 @@ class BBMain:
 
 
     def update_chart_thread(self):
-        update_thread = threading.Thread(target=self.update_chart)
+        if self.currentTab == 'RSI':
+            update_thread= threading.Thread(target=self.update_rsi_chart)
+        else:
+            update_thread = threading.Thread(target=self.update_chart)
         update_thread.start()
 
     def show_loading_screen(self):
@@ -148,8 +153,8 @@ class BBMain:
          
             stock_data = calculate_bollinger_bands(stock_data, window)
                 # Get company name
-            stock_ticker = yf.Ticker(ticker)
-            company_info = stock_ticker.info
+            self.stock_ticker = yf.Ticker(ticker)
+            company_info = self.stock_ticker.info
             company_name = company_info.get('shortName', ticker)
 
             if not stock_data.empty:
@@ -193,7 +198,9 @@ class BBMain:
         interget = self.interval_var.get()
         default_window = self.get_default_window(interget)
         self.window_var.set(default_window)
-
+    def Update_All_Chart(self):
+         self.update_rsi_chart()
+         self.update_chart()
     def __init__(self):
         self.root = Tk()
         self.root.title("Stock Analyzer")
@@ -206,10 +213,17 @@ class BBMain:
         self.gfig = plt.figure(figsize=(12, 6))
         self.gcanvas = FigureCanvasTkAgg(self.gfig, master=self.graph_tab)
         self.gcanvas.get_tk_widget().pack()
-    
+
         # 볼린저밴드 탭
         self.bb_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.bb_tab, text='볼린저밴드')
+       
+          # RSI 탭 추가
+        self.rsi_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.rsi_tab, text='RSI')
+        self.rsi_fig = plt.figure(figsize=(12, 6))
+        self.rsi_canvas = FigureCanvasTkAgg(self.rsi_fig, master=self.rsi_tab)
+        self.rsi_canvas.get_tk_widget().pack()
        
 
         self.interval_var = StringVar( self.root)
@@ -229,7 +243,7 @@ class BBMain:
         self.search_button = Button(self.root, text="검색", command=self.search_stock)
         self.search_button.place(x=680, y=20, width=50, height=20)
       
-        self.market = StringVar(value ='Kor')
+        self.market = StringVar(self.root,value ='Kor')
         Nasdaq_bt = Radiobutton(self.root, text="나스닥",value = 'Nasdaq',variable=self.market,  command=  self.ChangeMarket)
         Nasdaq_bt.pack()
         korea_bt = Radiobutton(self.root, text="코스피/코스닥",value = 'Kor', variable=self.market, command= self.ChangeMarket)
@@ -270,17 +284,67 @@ class BBMain:
           
         elif selected_tab == "볼린저밴드":
             self.currentTab = '볼린저밴드'
+        elif selected_tab == 'RSI':
+            self.currentTab ='RSI'
          
             
     def ChangeMarket(self):
        
        if self.market.get() == 'Kor':
-           self.market.set('Nasdaq')
-           self.market_label.config ( text= "Stock Market : NASDAQ")
-       else:
-           self.market.set('Kor')
            self.market_label.config ( text= "Stock Market : KOSPI / KOSDAQ")
+       else:
+           self.market_label.config ( text= "Stock Market : NASDAQ")
     
+    def calculate_RSI(self, data, time_window):
+        diff = data.diff(1).dropna()        # diff in one field(one day)
+
+        # positive gains (up) and negative gains (down) Series
+        up, down = diff.copy(), diff.copy()
+        up[up < 0] = 0
+        down[down > 0] = 0
+        
+        # EMAs of ups and downs
+        roll_up = up.ewm(span=time_window).mean()
+        roll_down = down.abs().ewm(span=time_window).mean()
+
+        # Relative Strength (RS)
+        RS = roll_up / roll_down
+
+        # Relative Strength Index (RSI)
+        RSI = 100.0 - (100.0 / (1.0 + RS))
+        return RSI
+    
+    def get_action_based_on_rsi(self):
+        if self.rsi < 30:
+            return "매수"
+        elif self.rsi > 70:
+            return "매도"
+        else:
+            return "관망"
+    
+    def update_rsi_chart(self):
+        # RSI 그래프 업데이트 메소드
+        if(ticker):
+            interval = self.interval_var.get()  # 시간 간격
+
+            # fetch data
+            data = yf.download(ticker, period='1y', interval=interval)
+
+            data['RSI'] = self.calculate_RSI(data['Close'], 14)
+            self.rsi =  data['RSI'].iloc[-1]
+
+            self.rsi_fig.clear()
+            ax = self.rsi_fig.add_subplot(111)
+            ax.plot(data.index, data['RSI'], label= ticker + ' RSI', color='lightblue')
+            ax.axhline(0, color='gray', linewidth=2)
+            ax.axhline(30, color='red', linestyle='--')
+            ax.axhline(70, color='red', linestyle='--')
+            ax.axhline(100, color='gray', linewidth=2)
+            ax.legend(loc='best')
+
+            action = self.get_action_based_on_rsi()
+            self.action_label.config(text=f"현재 주가에 대한 추천: {action}")
+            self.rsi_canvas.draw()
     # 창 종료 이벤트 처리 함수
     def on_window_close(self, root):
         global ticker

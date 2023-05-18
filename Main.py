@@ -49,14 +49,14 @@ class Main:
         # 뉴스 표시
         self.display_news()
          # 버튼 생성 및 배치
-        portfolio_button = Button(frame, text="포트폴리오", command=self.on_portfolio_click,height=3)
-        portfolio_button.grid(column=0, row=0, padx=10, pady=15)
+        portfolio_button = Button(frame, text="포트폴리오",font=("Arial", 11), command=self.on_portfolio_click,height=3)
+        portfolio_button.grid(column=0, row=0, padx=11, pady=15)
 
-        simulation_button = Button(frame, text="모의 투자", command=self.on_simulation_click,height=3)
-        simulation_button.grid(column=1, row=0, padx=10, pady=15)
+        simulation_button = Button(frame, text="모의 투자",font=("Arial", 11), command=self.on_simulation_click,height=3)
+        simulation_button.grid(column=1, row=0, padx=13, pady=15)
 
-        bollinger_button = Button(frame, text="볼린저 밴드 분석", command=self.on_bollinger_click,height=3)
-        bollinger_button.grid(column=2, row=0, padx=10, pady=15)
+        bollinger_button = Button(frame, text="차트 분석",font=("Arial", 11), command=self.on_bollinger_click,height=3)
+        bollinger_button.grid(column=2, row=0, padx=13, pady=15)
         window.mainloop()
 
     def move_label(self):
