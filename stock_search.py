@@ -27,34 +27,6 @@ def search_companies_naver(name):
         print(f"Error: Server responded with status code {response.status_code}")
         return {}
     
-# def search_tiker_by_name_KOR(name):
-#     url = f"https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo?serviceKey=tVsU5C%2BXcZFPkfBBZ4FpHvJqtN3FVqAD%2F3nU124LvWj4b%2Bk95RmCUzXhLvK18Acl%2FAA2XP%2B5EeOLQYNz3nJWig%3D%3D&numOfRows=1&itmsNm={name}"
-
-#     response = requests.get(url)
-#     soup = BeautifulSoup(response.content, "lxml-xml")
-
-#     isin_cd = soup.find("isinCd")
-#     mrkt_Ctg = soup.find("mrktCtg")
-#     ticker = ''
-#     if isin_cd:
-#         print(isin_cd.text)
-#         ticker = isin_cd.text[3:9]
-    
-#         if mrkt_Ctg:
-#             if mrkt_Ctg.text =='KOSPI':
-#                 ticker +='.KS'
-#             elif mrkt_Ctg.text =='KOSDAQ':
-#                 ticker += '.KQ'
-#         else:
-#             print("isinCd 태그를 찾을 수 없습니다.")
-#             return None
-#     else:
-#         print("isinCd 태그를 찾을 수 없습니다.")
-#         companies = search_companies_naver(name)
-#         return companies
-#     return [ticker]
-
-
 
 def search_tickers_by_name(market,name):  
 
