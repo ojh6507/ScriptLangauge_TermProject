@@ -2,11 +2,32 @@ from server import*
 import stock_search
 import mock_Stock
 import pickle
+import json
+client = Client()
+APP_KEY = client.get_KoreaInvest_ID()
+APP_SECRET = client.get_KoreaInvest_SECRET()
+ACCESS_TOKEN = ''
+CANO = client.get_CANO()
+ACNT_PRDT_CD = client.get_ACNT_PRDT_CD()
+URL_BASE = client.get_URL_Base()
+def get_access_token():
+    """토큰 발급"""
+    headers = {"content-type":"application/json"}
+    body = {"grant_type":"client_credentials",
+    "appkey":APP_KEY, 
+    "appsecret":APP_SECRET}
+    PATH = "oauth2/tokenP"
+    URL = f"{URL_BASE}/{PATH}"
+    res = requests.post(URL, headers=headers, data=json.dumps(body))
+    ACCESS_TOKEN = res.json()["access_token"]
+    return ACCESS_TOKEN
 class MockInvestmentApp:
     def __init__(self):
+        global ACCESS_TOKEN
         self.root = Tk()
         self.root.title("주식 모의투자 앱")
         self.root.geometry("475x440")
+        ACCESS_TOKEN = get_access_token()
         self.ticker =''
         self.initBuy = False
         self.balance = 1000000  # 초기 잔액 설정
@@ -32,6 +53,21 @@ class MockInvestmentApp:
             self.buy_total_label['text'] = f"{self.Sellamount}주 x {stock_price}원 : {self.total_price} 원"
 
             
+    def get_current_price(self, code):
+        """현재가 조회"""
+        PATH = "uapi/domestic-stock/v1/quotations/inquire-price"
+        URL = f"{URL_BASE}/{PATH}"
+        headers = {"Content-Type":"application/json", 
+                "authorization": f"Bearer {ACCESS_TOKEN}",
+                "appKey":APP_KEY,
+                "appSecret":APP_SECRET,
+                "tr_id":"FHKST01010100"}
+        params = {
+        "fid_cond_mrkt_div_code":"J",
+        "fid_input_iscd":code,
+        }
+        res = requests.get(URL, headers=headers, params=params)
+        return int(res.json()['output']['stck_prpr'])
 
     def buy_stock(self):
 
@@ -275,9 +311,13 @@ class MockInvestmentApp:
        
 
     def get_data(self):
+        print(self.ticker[:-3], self.ticker)
+        temp = self.ticker[:-3]
+        print(self.get_current_price(temp))
         stock = yf.Ticker(self.ticker)
         data = stock.history(period="1d", interval="1m")  # 1분 간격의 1일 데이터
         return data[['Open', 'High', 'Low', 'Close']]
+    
     def plot_data(self):
         data = self.get_data()
         figure1 = plt.Figure(figsize=(6,5), dpi=100)
