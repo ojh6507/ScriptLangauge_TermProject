@@ -286,7 +286,7 @@ class MockInvestmentApp:
             messagebox.showinfo("알림", "저장된 정보가 없습니다")
 
     def display_companies(self, companies, start):
-        for i in range(5):
+        for i in range(10):
             if start + i < len(companies):
                 company_name = list(companies.keys())[start + i]
                 self.results_listbox.insert(END, company_name)
