@@ -4,7 +4,7 @@ from stock_search import*
 
 matplotlib.use("TkAgg")
 yf.pdr_override()
-supported_intervals = ["60m", "1h", "1d", "5d", "1wk", "1mo", "3mo"]
+supported_intervals = ["1d", "5d", "1wk", "1mo", "3mo"]
 ticker = ''
 class BBMain:
     def display_companies(self, companies, start):
@@ -175,8 +175,8 @@ class BBMain:
                     ax.legend(loc="best")
                     
                 else:
+                    self.gfig.clf()
                     ax2 = self.gfig.add_subplot(111)
-
                     ohlc_data = stock_data[['Open', 'High', 'Low', 'Close']].resample('10D').ohlc()
                     ohlc_data.reset_index(inplace=True)
                     ohlc_data['Date'] = ohlc_data['Date'].map(mdates.date2num)
@@ -198,9 +198,7 @@ class BBMain:
         interget = self.interval_var.get()
         default_window = self.get_default_window(interget)
         self.window_var.set(default_window)
-    def Update_All_Chart(self):
-         self.update_rsi_chart()
-         self.update_chart()
+
     def __init__(self):
         self.root = Tk()
         self.root.title("Stock Analyzer")
@@ -325,6 +323,8 @@ class BBMain:
     def update_rsi_chart(self):
         # RSI 그래프 업데이트 메소드
         if(ticker):
+            loading_screen, progressbar = self.show_loading_screen()
+            self.root.update()
             interval = self.interval_var.get()  # 시간 간격
            
             # fetch data
@@ -347,6 +347,7 @@ class BBMain:
 
             action = self.get_action_based_on_rsi()
             self.action_label.config(text=f"현재 주가에 대한 추천: {action}")
+            self.hide_loading_screen(loading_screen, progressbar) 
             self.rsi_canvas.draw()
     # 창 종료 이벤트 처리 함수
     def on_window_close(self, root):
