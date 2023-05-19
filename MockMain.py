@@ -1,8 +1,7 @@
 from server import*
 import stock_search
 import mock_Stock
-import pickle
-import json
+
 
 client = Client()
 APP_KEY = client.get_KoreaInvest_ID()
@@ -25,9 +24,9 @@ def get_access_token():
     return ACCESS_TOKEN
 
 class MockInvestmentApp:
-    def __init__(self):
+    def __init__(self,master):
         global ACCESS_TOKEN
-        self.root = Tk()
+        self.root = Toplevel(master)
         self.root.title("주식 모의투자 앱")
         self.root.geometry("475x440")
         ACCESS_TOKEN = get_access_token()
@@ -36,8 +35,14 @@ class MockInvestmentApp:
         self.balance = 1000000  # 초기 잔액 설정
         self.stocks = [] 
         self.Sellamount = 0
+        self.photo = None
         self.create_widgets()
-        self.root.mainloop()
+  
+        c = Client()
+        self.mapAPIKey = c.get_GoogleMap_KEY()
+        self.gmaps = googlemaps.Client(key=self.mapAPIKey)
+  
+      
     def search_Company_info(self):
         if self.ticker:
             url =  f"https://navercomp.wisereport.co.kr/v2/company/c1020001.aspx?cmp_cd={self.ticker[:-3]}&cn="
@@ -48,8 +53,12 @@ class MockInvestmentApp:
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
                 td_tag = soup.find('td', {'class': 'txt', 'colspan': '3'})
-                print(td_tag.text.strip())   
-                   
+                
+                print(td_tag.text.strip())
+                
+                self.loc = td_tag.text.strip()
+                self.showMap()
+                              
             else:
                 print(f"Error: Server responded with status code {response.status_code}")   
 
@@ -59,7 +68,7 @@ class MockInvestmentApp:
         stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
         self.total_price = stock_price * self.amount
         if self.total_price > 0:
-            self.buy_total_label['text'] = f"{self.amount}주 x {stock_price}원 : {self.total_price} 원"
+            self.buy_total_label['text'] = f"{self.amount}주 x {stock_price}원 : {self.total_price}원"
        
              
     def calculate_Sell_total(self):
@@ -220,7 +229,7 @@ class MockInvestmentApp:
         self.buy_stock_button = Button(self.stock_search_frame, text="매수", command= self.buy_stock)
         self.buy_stock_button.place(x=350, y=210, width=100, height=100)
         self.sell_stock_button = Button(self.stock_search_frame, text="매도", command=self.sell_stock)
-        self.sell_stock_button.place(x=350, y=320, width=100, height=100)        
+        self.sell_stock_button.place(x=350, y=320, width=100, height=100)  
         self.buy_label = Label(self.stock_search_frame, text="매수 수량 :")
 
         self.buy_label.place(x=50, y=240, width=100, height=20)        
@@ -295,6 +304,23 @@ class MockInvestmentApp:
             self.start_index -= 5
             self.results_listbox.delete(0, END)
             self.display_companies(self.results, self.start_index)
+    
+    def showMap(self):
+        mapWindow = Toplevel(self.root)
+        if self.loc:
+            geocode_result = self.gmaps.geocode(self.loc)[0]
+            lat = geocode_result['geometry']['location']['lat']
+            lng = geocode_result['geometry']['location']['lng']
+
+            # Google Static Maps API에 마커를 추가
+            url = f"https://maps.googleapis.com/maps/api/staticmap?center={lat},{lng}&zoom=11&size=400x400&maptype=roadmap&markers=color:red%7Clabel:C%7C{lat},{lng}"
+            response = requests.get(url+'&key='+self.mapAPIKey)
+            image = PILImage.open(io.BytesIO(response.content))
+            self.photo = ImageTk.PhotoImage(image)
+
+            # 이미지를 표시하는 레이블을 생성하고 이를 윈도우에 배치
+            map_label = Label(mapWindow, image=self.photo)
+            map_label.pack()
 
     def show_search_results(self):
         stockName =  self.stock_name_entry.get()
