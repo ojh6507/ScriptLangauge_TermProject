@@ -326,16 +326,19 @@ class BBMain:
         # RSI 그래프 업데이트 메소드
         if(ticker):
             interval = self.interval_var.get()  # 시간 간격
-
+           
             # fetch data
             data = yf.download(ticker, period='1y', interval=interval)
+            stock_info = yf.Ticker(ticker)
+            company_info =  stock_info.info
+            company_name = company_info.get('shortName', ticker)
 
             data['RSI'] = self.calculate_RSI(data['Close'], 14)
             self.rsi =  data['RSI'].iloc[-1]
 
             self.rsi_fig.clear()
             ax = self.rsi_fig.add_subplot(111)
-            ax.plot(data.index, data['RSI'], label= ticker + ' RSI', color='lightblue')
+            ax.plot(data.index, data['RSI'], label= company_name + ' RSI', color='lightblue')
             ax.axhline(0, color='gray', linewidth=2)
             ax.axhline(30, color='red', linestyle='--')
             ax.axhline(70, color='red', linestyle='--')
