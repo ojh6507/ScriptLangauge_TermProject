@@ -82,7 +82,7 @@ class BBMain:
             self.fig.clf()
             self.gfig.clf()
             self.rsi_fig.clf()
-            
+            self.action_label.config(text="현재 주가에 대한 추천: ")
             self.gcanvas.draw()
             self.canvas.draw()
             company_name = self.company_entry.get()
@@ -92,7 +92,7 @@ class BBMain:
             else:
                 self.action_label.config(text="검색 결과를 찾을 수 없습니다.")
         else:
-                self.action_label.config(text="증시를 선택해주세요")
+                self.action_label.config(text="주식 시장을 선택해주세요")
 
 
     def update_chart_thread(self):
