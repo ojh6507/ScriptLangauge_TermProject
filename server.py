@@ -10,6 +10,13 @@ from bs4 import BeautifulSoup
 import tkinter.messagebox as messagebox
 import matplotlib.pyplot as plt
 
+import pickle
+from PIL import Image as PILImage, ImageTk
+import io
+import googlemaps
+import requests
+import json
+
 from mplfinance.original_flavor import candlestick_ohlc
 import matplotlib.dates as mdates
 
@@ -41,23 +48,30 @@ class Client:
         self.URL_BASE= "https://openapi.koreainvestment.com:9443"
         #모의투자
         # URL_BASE: "https://openapivts.koreainvestment.com:29443"
+        '''google Map API'''
+        self.googleMap_KEY ='AIzaSyBhIIblhxv6SLpMMNMQjtGFAbQBHW7tEjA'
+
 
     def get_Naver_Client_ID(self):
         return self.naver_CLIENT_ID
     def get_Naver_Client_SECRET(self):
         return self.naver_CLIENT_SECRET
     
+    
     def get_KoreaInvest_ID(self):
         return self.koreaInvest_ID
     def get_KoreaInvest_SECRET(self):
         return self.koreaInvest_SECRET
-    
     def get_CANO(self):
         return self.CANO
     def get_ACNT_PRDT_CD(self):
         return self.ACNT_PRDT_CD
     def get_URL_Base(self):
         return self.URL_BASE
+    
+
+    def get_GoogleMap_KEY(self):
+        return self.googleMap_KEY
     
 
     
