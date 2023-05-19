@@ -65,10 +65,11 @@ class MockInvestmentApp:
     def calculate_buy_total(self):
 
         self.amount = int(self.stock_buy_amount_entry.get())
-        stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
-        self.total_price = stock_price * self.amount
+        self.set_data()
+
+        self.total_price = self.current_price * self.amount
         if self.total_price > 0:
-            self.buy_total_label['text'] = f"{self.amount}주 x {stock_price}원 : {self.total_price}원"
+            self.buy_total_label['text'] = f"{self.amount}주 x {self.current_price}원 : {self.total_price}원"
        
              
     def calculate_Sell_total(self):
