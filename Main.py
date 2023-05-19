@@ -4,34 +4,35 @@ import webbrowser
 import MockMain
 from io import BytesIO
 from server import *
+
 class Main:
     def on_portfolio_click(self):
         print("포트폴리오 메뉴를 선택했습니다.")
 
     def on_simulation_click(self):
         print("모의 투자 메뉴를 선택했습니다.")
-        MockMain.MockInvestmentApp()
+        MockMain.MockInvestmentApp(self.window)
 
     def on_bollinger_click(self):
         print("볼린저 밴드 분석 메뉴를 선택했습니다.")
-        BB_main.BBMain()
+        BB_main.BBMain(self.window)
     
 
     def __init__(self):
         # 창 생성
-        window = Tk()
-        window.title("MENU")
-        window.geometry("300x130")
-        window.rowconfigure(4, weight=1)  # row 4의 크기를 조정 가능하도록 설정
-        window.columnconfigure(0, weight=1)  # column 0의 크기를 조정 가능하도록 설정
+        self.window = Tk()
+        self.window.title("MENU")
+        self.window.geometry("300x130")
+        self.window.rowconfigure(4, weight=1)  # row 4의 크기를 조정 가능하도록 설정
+        self.window.columnconfigure(0, weight=1)  # column 0의 크기를 조정 가능하도록 설정
 
         # 프레임 생성
-        frame = Frame(window)
+        frame = Frame(self.window)
         frame.grid(column=0, row=0, sticky="nsew")
    
        # 뉴스 프레임 생성 (높이 100으로 변경)
         self.current_index = 0
-        self.news_frame = Frame(window, width=330, height=30, bg="blue")
+        self.news_frame = Frame(self.window, width=330, height=30, bg="blue")
         self.news_frame.grid(column=0, row=5, sticky="ew")
 
         # 뉴스 정보 가져오기
@@ -57,7 +58,7 @@ class Main:
 
         bollinger_button = Button(frame, text="차트 분석",font=("Arial", 11), command=self.on_bollinger_click,height=3)
         bollinger_button.grid(column=2, row=0, padx=13, pady=15)
-        window.mainloop()
+        self.window.mainloop()
 
     def move_label(self):
         current_position = self.news_label.winfo_x()
