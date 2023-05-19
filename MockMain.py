@@ -10,6 +10,7 @@ ACCESS_TOKEN = ''
 CANO = client.get_CANO()
 ACNT_PRDT_CD = client.get_ACNT_PRDT_CD()
 URL_BASE = client.get_URL_Base()
+
 def get_access_token():
     """토큰 발급"""
     headers = {"content-type":"application/json"}
@@ -21,6 +22,7 @@ def get_access_token():
     res = requests.post(URL, headers=headers, data=json.dumps(body))
     ACCESS_TOKEN = res.json()["access_token"]
     return ACCESS_TOKEN
+
 class MockInvestmentApp:
     def __init__(self):
         global ACCESS_TOKEN
@@ -48,13 +50,13 @@ class MockInvestmentApp:
     def calculate_Sell_total(self):
         self.Sellamount = int(self.stock_sell_amount_entry.get())
         if  self.amount > self.Sellamount:
-            stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
-            self.total_price = stock_price * self.Sellamount
-            self.buy_total_label['text'] = f"{self.Sellamount}주 x {stock_price}원 : {self.total_price} 원"
+            
+            self.total_price = self.current_price * self.Sellamount
+            self.buy_total_label['text'] = f"{self.Sellamount}주 x {self.current_price}원 : {self.total_price} 원"
 
             
-    def get_current_price(self, code):
-        """현재가 조회"""
+    def get_price(self, code):
+
         PATH = "uapi/domestic-stock/v1/quotations/inquire-price"
         URL = f"{URL_BASE}/{PATH}"
         headers = {"Content-Type":"application/json", 
@@ -67,7 +69,7 @@ class MockInvestmentApp:
         "fid_input_iscd":code,
         }
         res = requests.get(URL, headers=headers, params=params)
-        return int(res.json()['output']['stck_prpr'])
+        return res.json()['output']
 
     def buy_stock(self):
 
@@ -96,6 +98,7 @@ class MockInvestmentApp:
   
     def sell_stock(self):
         # 선택한 주식의 ticker
+        self.set_data()
         self.stockName = self.sell_stock_var.get()
         existing_stock = None
         for stock in self.stocks:
@@ -108,8 +111,7 @@ class MockInvestmentApp:
             if existing_stock.getAmount() == 0:
                 del existing_stock 
             # 매도한 주식의 가격을 잔액에 추가
-            stock_price = self.get_data()['Close'][-1]  # 종가를 주식의 현재 가격으로 가정
-            total_price = int(stock_price) * self.Sellamount
+            total_price = int(self.current_price) * self.Sellamount
             self.balance += total_price
             # 잔액 업데이트
             self.balance_label['text'] = f"잔액: {self.balance} 원"
@@ -123,11 +125,11 @@ class MockInvestmentApp:
     def calculate_profit(self, stock):
         # 현재 가격 구하기
         self.ticker =stock.getTicker()
-        current_price = self.get_data()['Close'][-1]
+        self.set_data()
         # 구매 가격 구하기
         purchase_price = stock.get_per_Price()
         # 수익률 계산하기
-        profit_rate = (current_price - purchase_price) / purchase_price * 100
+        profit_rate = (self.current_price - purchase_price) / purchase_price * 100
         return profit_rate
 
     def update_portfolio_listbox(self):
@@ -174,19 +176,22 @@ class MockInvestmentApp:
         self.stock_name_entry.place(x=150, y=30, width=150, height=20)
         self.search_button = Button(self.stock_search_frame, text="검색", command=self.search_stock)
         self.search_button.place(x=350, y=10, width=100, height=100)
+        self.refresh_button = Button(self.stock_search_frame, text="새로고침", command=self.set_data)
+        self.refresh_button.place(x=350, y=140, width=100, height=30)
+        
         self.stocks_label = Label(self.stock_search_frame, text="검색결과:")
         self.stocks_label.place(x=0, y=100, width=100, height=20)
 
         self.stocks_name = Label(self.stock_search_frame, text="")
         self.stocks_name.place(x=140, y=80, width=130, height=20)
+        self.stock_curr_label = Label(self.stock_search_frame, text="")
+        self.stock_curr_label.place(x=150, y=100, width=110, height=20)
         self.stock_open_label = Label(self.stock_search_frame, text="")
-        self.stock_open_label.place(x=150, y=100, width=110, height=20)
+        self.stock_open_label.place(x=150, y=120, width=110, height=20)
         self.stock_high_label = Label(self.stock_search_frame, text="")
-        self.stock_high_label.place(x=150, y=120, width=110, height=20)
-        self.stock_low_label = Label(self.stock_search_frame, text="")
-        self.stock_low_label.place(x=150, y=140, width=110, height=20)
-        self.stock_close_label = Label(self.stock_search_frame, text="")
-        self.stock_close_label.place(x=150, y=160, width=110, height=20)
+        self.stock_high_label.place(x=150, y=140, width=110, height=20)
+        self.stock_lower_label = Label(self.stock_search_frame, text="")
+        self.stock_lower_label.place(x=150, y=160, width=110, height=20)
      
         # 모의 투자
         self.balance_label = Label(self.stock_search_frame, text=f"잔액: {self.balance} 원")
@@ -293,38 +298,33 @@ class MockInvestmentApp:
         self.selected_index = self.results_listbox.curselection()
         self.initBuy = False
         if self.selected_index:
-            key = self.results_listbox.get(self.selected_index[0])
-            self.ticker = self.results[key]
-            self.show_Select_INFO(key)
+            self. key = self.results_listbox.get(self.selected_index[0])
+            self.ticker = self.results[self.key]
+
+            self.set_data()
             
             self.search_results_window.destroy()
-            self.plot_data()
+
 
     def show_Select_INFO(self,name):
-        data = self.get_data()
+        
         self.stocks_name['text'] = name
         self.sl_name = name
-        self.stock_open_label['text'] = f'시가: {data["Open"][-1]}'
-        self.stock_high_label['text'] = f'고가: {data["High"][-1]}'
-        self.stock_low_label['text'] = f'저가: {data["Low"][-1]}'
-        self.stock_close_label['text'] = f'종가: {data["Close"][-1]}'
+        self.stock_curr_label['text'] = f'현재가: {self.current_price}'
+        self.stock_open_label['text'] = f'시가: {self.open_price}'
+        self.stock_high_label['text'] = f'고가: {self.high_price}'
+        self.stock_lower_label['text'] = f'저가: {self.lower_price}'
        
 
-    def get_data(self):
-        print(self.ticker[:-3], self.ticker)
+    def set_data(self):
         temp = self.ticker[:-3]
-        print(self.get_current_price(temp))
-        stock = yf.Ticker(self.ticker)
-        data = stock.history(period="1d", interval="1m")  # 1분 간격의 1일 데이터
-        return data[['Open', 'High', 'Low', 'Close']]
+        self.current_price = int(self.get_price(temp)['stck_prpr'])
+        self.open_price =  int(self.get_price(temp)['stck_oprc'])
+        self.high_price = int(self.get_price(temp)['stck_hgpr'])
+        self.lower_price = int(self.get_price(temp)['stck_lwpr'])
+        self.show_Select_INFO(self.key)
     
-    def plot_data(self):
-        data = self.get_data()
-        figure1 = plt.Figure(figsize=(6,5), dpi=100)
-        ax1 = figure1.add_subplot(111)
-        df = DataFrame(data,columns=['Open','High','Low','Close'])
-        df.plot(kind='line', legend=True, ax=ax1, fontsize=10)
-        ax1.set_title('Stock Data (Open, High, Low, Close)')
+        
     
     def search_stock(self):
         self.show_search_results()
