@@ -43,6 +43,7 @@ def search_tickers_by_name(market,name):
             if response.status_code == 200:
                 data = response.json()
                 for result in data["quotes"]:
+                   
                     Tresult.append (result['symbol'])
             else:
                 print(f"Error: Server responded with status code {response.status_code}")
