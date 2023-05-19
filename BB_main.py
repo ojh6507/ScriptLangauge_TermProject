@@ -199,8 +199,8 @@ class BBMain:
         default_window = self.get_default_window(interget)
         self.window_var.set(default_window)
 
-    def __init__(self):
-        self.root = Tk()
+    def __init__(self,master):
+        self.root = Toplevel(master)
         self.root.title("Stock Analyzer")
         
         #탭 추가
