@@ -3,6 +3,7 @@ import stock_search
 import mock_Stock
 import pickle
 import json
+
 client = Client()
 APP_KEY = client.get_KoreaInvest_ID()
 APP_SECRET = client.get_KoreaInvest_SECRET()
@@ -37,6 +38,20 @@ class MockInvestmentApp:
         self.Sellamount = 0
         self.create_widgets()
         self.root.mainloop()
+    def search_Company_info(self):
+        if self.ticker:
+            url =  f"https://navercomp.wisereport.co.kr/v2/company/c1020001.aspx?cmp_cd={self.ticker[:-3]}&cn="
+            headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"
+            }
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                td_tag = soup.find('td', {'class': 'txt', 'colspan': '3'})
+                print(td_tag.text.strip())   
+                   
+            else:
+                print(f"Error: Server responded with status code {response.status_code}")   
 
     def calculate_buy_total(self):
 
@@ -131,7 +146,8 @@ class MockInvestmentApp:
         # 수익률 계산하기
         profit_rate = (self.current_price - purchase_price) / purchase_price * 100
         return profit_rate
-
+    
+    '''포트폴리오 업데이트'''
     def update_portfolio_listbox(self):
         # 리스트 박스 초기화
         self.portfolio_listbox.delete(0, END)
@@ -146,7 +162,8 @@ class MockInvestmentApp:
         # 사용자가 보유한 주식 종목 추가
         for ticker in self.stocks:
             self.sell_stock_option['menu'].add_command(label=ticker.getName(), command=lambda t=ticker.getName(): self.sell_stock_var.set(t))
-
+    
+    '''위젯 생성'''
     def create_widgets(self):
           # Notebook 생성
         self.notebook = ttk.Notebook(self.root)
@@ -179,6 +196,10 @@ class MockInvestmentApp:
         self.refresh_button = Button(self.stock_search_frame, text="새로고침", command=self.set_data)
         self.refresh_button.place(x=350, y=140, width=100, height=30)
         
+        self.show_Loc_button = Button(self.stock_search_frame, text="기업 위치", command=self.search_Company_info)
+        self.show_Loc_button.place(x=20, y=140, width=100, height=30)
+        
+
         self.stocks_label = Label(self.stock_search_frame, text="검색결과:")
         self.stocks_label.place(x=0, y=100, width=100, height=20)
 
@@ -231,12 +252,17 @@ class MockInvestmentApp:
         YLine.place(x= 1, y= 0)
         self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:")
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
-
+    
+  
     def on_tab_change(self, event):
         selected_tab = self.notebook.tab(self.notebook.select(), "text")
         if selected_tab == "포트폴리오":
             self.update_portfolio_listbox()
 
+
+
+
+    '''모의투자 포트폴리오 저장'''
     def save_stocks(self):
         with open('stocks.pkl', 'wb') as f:
             pickle.dump(self.stocks, f)
@@ -310,10 +336,10 @@ class MockInvestmentApp:
         
         self.stocks_name['text'] = name
         self.sl_name = name
-        self.stock_curr_label['text'] = f'현재가: {self.current_price}'
-        self.stock_open_label['text'] = f'시가: {self.open_price}'
-        self.stock_high_label['text'] = f'고가: {self.high_price}'
-        self.stock_lower_label['text'] = f'저가: {self.lower_price}'
+        self.stock_curr_label['text'] = f'현재가: {self.current_price} 원'
+        self.stock_open_label['text'] = f'시가: {self.open_price} 원'
+        self.stock_high_label['text'] = f'고가: {self.high_price} 원'
+        self.stock_lower_label['text'] = f'저가: {self.lower_price} 원'
        
 
     def set_data(self):
