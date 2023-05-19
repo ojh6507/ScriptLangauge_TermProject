@@ -317,11 +317,12 @@ class MockInvestmentApp:
        
 
     def set_data(self):
-        temp = self.ticker[:-3]
-        self.current_price = int(self.get_price(temp)['stck_prpr'])
-        self.open_price =  int(self.get_price(temp)['stck_oprc'])
-        self.high_price = int(self.get_price(temp)['stck_hgpr'])
-        self.lower_price = int(self.get_price(temp)['stck_lwpr'])
+        code = self.ticker[:-3]
+        temp2 = self.get_price(code)
+        self.current_price = int(temp2['stck_prpr'])
+        self.open_price =  int(temp2['stck_oprc'])
+        self.high_price = int(temp2['stck_hgpr'])
+        self.lower_price = int(temp2['stck_lwpr'])
         self.show_Select_INFO(self.key)
     
         
