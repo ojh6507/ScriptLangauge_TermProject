@@ -177,8 +177,13 @@ class BBMain:
                 else:
                     self.gfig.clf()
                     ax2 = self.gfig.add_subplot(111)
-                    ohlc_data = stock_data[['Open', 'High', 'Low', 'Close']].resample('10D').ohlc()
-                    ohlc_data.reset_index(inplace=True)
+
+                    # Assuming 'Date' is the index of stock_data
+                    ohlc_data = stock_data[['Open', 'High', 'Low', 'Close']].copy()
+
+                    # Reset index and convert 'Date' to numerical format
+                    ohlc_data = ohlc_data.reset_index()
+                    ohlc_data['Date'] = pd.to_datetime(ohlc_data['Date'])
                     ohlc_data['Date'] = ohlc_data['Date'].map(mdates.date2num)
 
                     candlestick_ohlc(ax2, ohlc_data.values, width=0.6, colorup='g', colordown='r')
@@ -206,7 +211,7 @@ class BBMain:
         #탭 추가
         self.notebook = ttk.Notebook(self.root)
         self.graph_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.graph_tab, text='그래프')
+        self.notebook.add(self.graph_tab, text='캔들스틱 차트')
 
         self.gfig = plt.figure(figsize=(12, 6))
         self.gcanvas = FigureCanvasTkAgg(self.gfig, master=self.graph_tab)
