@@ -282,7 +282,7 @@ class BBMain:
 
     def on_tab_change(self, event):
         selected_tab = self.notebook.tab(self.notebook.select(), "text")
-        if selected_tab == "그래프":
+        if selected_tab == "캔들스틱 차트":
             self.currentTab ='그래프'
           
         elif selected_tab == "볼린저밴드":
