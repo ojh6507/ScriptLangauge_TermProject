@@ -284,7 +284,6 @@ class BBMain:
         selected_tab = self.notebook.tab(self.notebook.select(), "text")
         if selected_tab == "캔들스틱 차트":
             self.currentTab ='그래프'
-          
         elif selected_tab == "볼린저밴드":
             self.currentTab = '볼린저밴드'
         elif selected_tab == 'RSI':
@@ -337,7 +336,6 @@ class BBMain:
             stock_info = yf.Ticker(ticker)
             company_info =  stock_info.info
             company_name = company_info.get('shortName', ticker)
-
             data['RSI'] = self.calculate_RSI(data['Close'], 14)
             self.rsi =  data['RSI'].iloc[-1]
 
