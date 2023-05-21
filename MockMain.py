@@ -308,6 +308,7 @@ class MockInvestmentApp:
     
     def showMap(self):
         mapWindow = Toplevel(self.root)
+        mapWindow.title('기업위치')
         if self.loc:
             geocode_result = self.gmaps.geocode(self.loc)[0]
             lat = geocode_result['geometry']['location']['lat']
