@@ -2,12 +2,14 @@ import BB_main
 import requests
 import webbrowser
 import MockMain
+import Portfolio
 from io import BytesIO
 from server import *
 
 class Main:
     def on_portfolio_click(self):
         print("포트폴리오 메뉴를 선택했습니다.")
+        Portfolio.portfolio(self.window)
 
     def on_simulation_click(self):
         print("모의 투자 메뉴를 선택했습니다.")
