@@ -6,6 +6,7 @@ import Portfolio
 from io import BytesIO
 from server import *
 
+
 class Main:
     def on_portfolio_click(self):
         print("포트폴리오 메뉴를 선택했습니다.")

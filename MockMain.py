@@ -150,6 +150,7 @@ class MockInvestmentApp:
     def calculate_profit(self, stock):
         # 현재 가격 구하기
         self.ticker =stock.getTicker()
+        self.key = stock.getName()
         self.set_data()
         # 구매 가격 구하기
         purchase_price = stock.get_per_Price()
@@ -282,6 +283,7 @@ class MockInvestmentApp:
         try:
             with open('stocks.pkl', 'rb') as f:
                 self.stocks = pickle.load(f)
+      
                 messagebox.showinfo("알림", "불러오기 완료")
         except FileNotFoundError:
             messagebox.showinfo("알림", "저장된 정보가 없습니다")
@@ -308,6 +310,7 @@ class MockInvestmentApp:
     
     def showMap(self):
         mapWindow = Toplevel(self.root)
+
         mapWindow.title('기업위치')
         if self.loc:
             geocode_result = self.gmaps.geocode(self.loc)[0]
@@ -323,7 +326,7 @@ class MockInvestmentApp:
             # 이미지를 표시하는 레이블을 생성하고 이를 윈도우에 배치
             map_label = Label(mapWindow, image=self.photo)
             map_label.pack()
-
+            
     def show_search_results(self):
         stockName =  self.stock_name_entry.get()
         self.results = stock_search.search_companies_naver(stockName)
@@ -352,7 +355,8 @@ class MockInvestmentApp:
         self.selected_index = self.results_listbox.curselection()
         self.initBuy = False
         if self.selected_index:
-            self. key = self.results_listbox.get(self.selected_index[0])
+            self.key = self.results_listbox.get(self.selected_index[0])
+            print(self.key)
             self.ticker = self.results[self.key]
 
             self.set_data()
