@@ -9,15 +9,12 @@ from server import *
 
 class Main:
     def on_portfolio_click(self):
-        print("포트폴리오 메뉴를 선택했습니다.")
         Portfolio.portfolio(self.window)
 
     def on_simulation_click(self):
-        print("모의 투자 메뉴를 선택했습니다.")
         MockMain.MockInvestmentApp(self.window)
 
     def on_bollinger_click(self):
-        print("볼린저 밴드 분석 메뉴를 선택했습니다.")
         BB_main.BBMain(self.window)
     
 
