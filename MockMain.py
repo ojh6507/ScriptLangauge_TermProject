@@ -32,12 +32,17 @@ class MockInvestmentApp:
         ACCESS_TOKEN = get_access_token()
         self.ticker =''
         self.initBuy = False
-        self.balance = 1000000  # 초기 잔액 설정
         self.stocks = [] 
         self.Sellamount = 0
         self.photo = None
+        try:
+            with open('user.pkl', 'rb') as f:
+                self.user = pickle.load(f)
+        except FileNotFoundError:
+                self.user = mock_Stock.USER()
+
+        self.balance = self.user.getBalance()  # 초기 잔액 설정
         self.create_widgets()
-  
         c = Client()
         self.mapAPIKey = c.get_GoogleMap_KEY()
         self.gmaps = googlemaps.Client(key=self.mapAPIKey)
@@ -52,10 +57,7 @@ class MockInvestmentApp:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
-                td_tag = soup.find('td', {'class': 'txt', 'colspan': '3'})
-                
-                print(td_tag.text.strip())
-                
+                td_tag = soup.find('td', {'class': 'txt', 'colspan': '3'})  
                 self.loc = td_tag.text.strip()
                 self.showMap()
                               
@@ -276,7 +278,10 @@ class MockInvestmentApp:
     '''모의투자 포트폴리오 저장'''
     def save_stocks(self):
         with open('stocks.pkl', 'wb') as f:
+            self.user.set_balance(self.balance)
             pickle.dump(self.stocks, f)
+        with open('user.pkl', 'wb') as f:
+            pickle.dump(self.user,f)
             messagebox.showinfo("알림", "저장 완료")
 
     def load_stocks(self):
@@ -356,7 +361,6 @@ class MockInvestmentApp:
         self.initBuy = False
         if self.selected_index:
             self.key = self.results_listbox.get(self.selected_index[0])
-            print(self.key)
             self.ticker = self.results[self.key]
 
             self.set_data()

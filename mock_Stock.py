@@ -18,3 +18,11 @@ class STOCK:
         self.amount += amount
     def update_Sell_amount(self, amount):
         self.amount -= amount
+
+class USER:
+    def __init__(self) :
+        self.balance = 1000000  # 초기 잔액 설정
+    def getBalance(self):
+        return self.balance
+    def set_balance(self, money):
+        self.balance = money
