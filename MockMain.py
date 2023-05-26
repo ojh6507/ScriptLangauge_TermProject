@@ -1,5 +1,6 @@
 from server import*
 import stock_search
+import os
 import mock_Stock
 
 
@@ -190,10 +191,13 @@ class MockInvestmentApp:
         # 포트폴리오 Frame
         self.portfolio_listbox = Listbox(self.portfolio_frame,width=40)
         self.portfolio_listbox.pack(padx=20, pady=20)
+        self.reset_button = Button(self.portfolio_frame, text="초기화", command=self.reset_stocks)
+        self.reset_button.place(x=250, y=200, width=40, height=30)
         self.sav_button = Button(self.portfolio_frame, text="저장", command=self.save_stocks)
         self.sav_button.place(x=290, y=200, width=30, height=30)
         self.sav_button = Button(self.portfolio_frame, text="불러오기", command=self.load_stocks)
         self.sav_button.place(x=330, y=200, width=50, height=30)
+
 
         #검색 frame
         self.sell_stock_var = StringVar(self.stock_search_frame)
@@ -272,8 +276,16 @@ class MockInvestmentApp:
         if selected_tab == "포트폴리오":
             self.update_portfolio_listbox()
 
-
-
+    '''포트폴리오 초기화'''
+    def reset_stocks(self):
+        self.portfolio_listbox.delete(0, END)
+        self.stocks
+        self.user.reset()  # 사용자 정보 초기화
+        if os.path.exists('stocks.pkl'):
+            os.remove('stocks.pkl')  # stocks.pkl 파일 삭제
+        if os.path.exists('user.pkl'):
+            os.remove('user.pkl')  # user.pkl 파일 삭제
+        messagebox.showinfo("알림", "리셋 완료")
 
     '''모의투자 포트폴리오 저장'''
     def save_stocks(self):
@@ -386,6 +398,7 @@ class MockInvestmentApp:
         self.high_price = int(temp2['stck_hgpr'])
         self.lower_price = int(temp2['stck_lwpr'])
         self.show_Select_INFO(self.key)
+
     
         
     

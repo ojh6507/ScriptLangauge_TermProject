@@ -26,3 +26,6 @@ class USER:
         return self.balance
     def set_balance(self, money):
         self.balance = money
+
+    def reset(self):
+        self.set_balance=1000000
