@@ -22,17 +22,17 @@ class Main:
         # 창 생성
         self.window = Tk()
         self.window.title("MENU")
-        self.window.geometry("300x130")
+        self.window.geometry("305x130")
         self.window.rowconfigure(4, weight=1)  # row 4의 크기를 조정 가능하도록 설정
         self.window.columnconfigure(0, weight=1)  # column 0의 크기를 조정 가능하도록 설정
 
         # 프레임 생성
-        frame = Frame(self.window)
+        frame = Frame(self.window,bg='#FFFFFF')
         frame.grid(column=0, row=0, sticky="nsew")
    
        # 뉴스 프레임 생성 (높이 100으로 변경)
         self.current_index = 0
-        self.news_frame = Frame(self.window, width=330, height=30, bg="blue")
+        self.news_frame = Frame(self.window, width=330, height=30, bg="#003399")
         self.news_frame.grid(column=0, row=5, sticky="ew")
 
         # 뉴스 정보 가져오기
@@ -41,7 +41,7 @@ class Main:
         self.news_title = self.articles[self.current_index]["title"]
 
         # 라벨 배경색 변경 및 높이 설정
-        self.news_label = Label(self.news_frame, bg="blue", fg="yellow")
+        self.news_label = Label(self.news_frame, bg="#003399", fg="white")
         self.news_label.place(x=330, y=0)  # 라벨을 프레임 내에서 초기 위치로 설정
         self.move_label()
 
@@ -49,15 +49,16 @@ class Main:
         self.news_label.bind("<Button-1>", lambda e: webbrowser.open(self.articles[self.current_index - 1]["link"]))
         # 뉴스 표시
         self.display_news()
+        
          # 버튼 생성 및 배치
-        portfolio_button = Button(frame, text="포트폴리오",font=("Arial", 11), command=self.on_portfolio_click,height=3)
-        portfolio_button.grid(column=0, row=0, padx=11, pady=15)
+        self.portfolio_button = Button(frame, text="포트폴리오",font=("Arial", 11, 'bold'),activebackground='#303F9F',activeforeground='#BDBDBD',fg='#FFFFFF',bg='#3F51B5', command=self.on_portfolio_click,height=3)
+        self.portfolio_button.grid(column=0, row=0, padx=11, pady=15)
 
-        simulation_button = Button(frame, text="모의 투자",font=("Arial", 11), command=self.on_simulation_click,height=3)
-        simulation_button.grid(column=1, row=0, padx=13, pady=15)
+        self.simulation_button = Button(frame, text="모의 투자",activebackground='#303F9F',activeforeground='#BDBDBD',font=("Arial", 11,'bold'),fg='#FFFFFF',bg='#3F51B5', command=self.on_simulation_click,height=3)
+        self.simulation_button.grid(column=1, row=0, padx=13, pady=15)
 
-        bollinger_button = Button(frame, text="차트 분석",font=("Arial", 11), command=self.on_bollinger_click,height=3)
-        bollinger_button.grid(column=2, row=0, padx=13, pady=15)
+        self.bollinger_button = Button(frame, text="차트 분석",font=("Arial", 11,'bold'),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.on_bollinger_click,height=3)
+        self.bollinger_button.grid(column=2, row=0, padx=13, pady=15)
         self.window.mainloop()
 
     def move_label(self):
