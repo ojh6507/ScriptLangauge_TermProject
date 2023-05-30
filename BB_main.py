@@ -7,6 +7,8 @@ yf.pdr_override()
 supported_intervals = ["1d", "5d", "1wk", "1mo", "3mo"]
 ticker = ''
 class BBMain:
+    _instance = None
+    _initialized = False
     def display_companies(self, companies, start):
         for i in range(10):
             if start + i < len(companies):
@@ -48,19 +50,21 @@ class BBMain:
 
                 elif isinstance(self.results, dict):
                     self.search_results_window = Toplevel(self.root)
+                    self.search_results_window.configure(bg='#FFFFFF')
+
                     self.search_results_window.title("검색 결과")
-                    self.results_listbox = Listbox(self.search_results_window, selectmode=SINGLE)
+                    self.results_listbox = Listbox(self.search_results_window,bg='#F5F5F5',fg='#000000', selectmode=SINGLE)
 
                     self.start_index = 0
                     self.display_companies(self.results, self.start_index)
 
                     self.results_listbox.pack(padx=20, pady=20)
 
-                    prev_button = Button(self.search_results_window, text="Prev", command=self.prev_page)
+                    prev_button = Button(self.search_results_window, text="Prev",bg='#3F51B5',fg='#FFFFFF', command=self.prev_page)
                     prev_button.pack(side=LEFT)
-                    next_button = Button(self.search_results_window, text="Next", command=self.next_page)
+                    next_button = Button(self.search_results_window, text="Next",bg='#3F51B5',fg='#FFFFFF', command=self.next_page)
                     next_button.pack(side=RIGHT)
-                    select_button = Button(self.search_results_window, text="선택", command=self.on_result_select)
+                    select_button = Button(self.search_results_window, text="선택",bg='#3F51B5',fg='#FFFFFF', command=self.on_result_select)
                     select_button.pack(padx=20, pady=20)
         else:
             self.action_label.config(text="검색 결과를 찾을 수 없습니다.")
@@ -91,11 +95,27 @@ class BBMain:
                 self.show_search_results()
             else:
                 self.action_label.config(text="검색 결과를 찾을 수 없습니다.")
+                self.results = None
         else:
                 self.action_label.config(text="주식 시장을 선택해주세요")
 
 
     def update_chart_thread(self):
+       
+      
+        try:
+            self.style.theme_create("custom_theme", parent="alt", settings={
+                "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0], "background":"#3f51b5"}},
+                "TNotebook.Tab": {
+                    "configure": {"padding": [10, 5], "background": "#3f51b5", "foreground": "#FFFFFF"},
+                    "map": {"background": [("selected", "#7986cb")], "foreground": [("selected", "black")]}
+                }
+            })
+        except TclError:
+            pass
+       
+        self.style.theme_use("custom_theme")
+
         if self.currentTab == 'RSI':
             update_thread= threading.Thread(target=self.update_rsi_chart)
         else:
@@ -103,12 +123,23 @@ class BBMain:
         update_thread.start()
 
     def show_loading_screen(self):
+        
         loading_screen = Toplevel(self.root)
+        loading_screen.configure(bg='#FFFFFF')
         loading_screen.title("Loading...")
-        loading_label = Label(loading_screen, text="데이터를 로드하는 중입니다. 잠시 기다려 주세요...")
+        loading_label = Label(loading_screen, text="데이터를 로드하는 중입니다. 잠시 기다려 주세요...",font=('Arial',12,'bold'),bg='white')
         loading_label.pack(padx=20, pady=20)
 
-        progressbar = ttk.Progressbar(loading_screen, mode="indeterminate")
+        style = ttk.Style()
+       
+        # Changing the color of the progressbar
+        style.configure("TProgressbar",
+                        foreground='#303F9F',  # Color of the bar
+                        background='#303F9F',  # Color of the background area
+                        troughcolor ='#FFFFFF',  # Color of the trough area (not covered by the bar)
+                        )
+
+        progressbar = ttk.Progressbar(loading_screen, mode="indeterminate", style="TProgressbar")
         progressbar.pack(padx=20, pady=20)
         progressbar.start()
         progressbar.update()
@@ -116,7 +147,7 @@ class BBMain:
         loading_screen.lift()
         self.root.attributes("-disabled", True)
         self.root.update()  # Change this line
-
+        self.style.theme_use("custom_theme")
         return loading_screen, progressbar
 
     def hide_loading_screen(self,loading_screen, progressbar):
@@ -203,82 +234,105 @@ class BBMain:
         interget = self.interval_var.get()
         default_window = self.get_default_window(interget)
         self.window_var.set(default_window)
-
+    
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(BBMain, cls).__new__(cls)
+        return cls._instance
+    
     def __init__(self,master):
-        self.root = Toplevel(master)
-        self.root.title("Stock Analyzer")
+   
+        if not self._initialized:
+            self._initialized = True
+            
+            self.root = Toplevel(master)
+            self.root.title("Stock Analyzer")
+            self.root.config(bg='#1A237E')        
+            self.style = ttk.Style()
+            self.style.theme_create("custom_theme", parent="alt", settings={
+                "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0],"background":"#3f51b5"}},
+                "TNotebook.Tab": {
+                    "configure": {"padding": [10, 5], "background": "#3f51b5","foreground": "#FFFFFF"},
+                    "map": {"background": [("selected", "#7986cb")],"foreground": [("selected", "black")]},
+                }
+            })
+            self.style.theme_use("custom_theme")
+
+            # 노트북 스타일 설정
         
-        #탭 추가
-        self.notebook = ttk.Notebook(self.root)
-        self.graph_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.graph_tab, text='캔들스틱 차트')
-
-        self.gfig = plt.figure(figsize=(12, 6))
-        self.gcanvas = FigureCanvasTkAgg(self.gfig, master=self.graph_tab)
-        self.gcanvas.get_tk_widget().pack()
-
-        # 볼린저밴드 탭
-        self.bb_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.bb_tab, text='볼린저밴드')
-       
-          # RSI 탭 추가
-        self.rsi_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.rsi_tab, text='RSI')
-        self.rsi_fig = plt.figure(figsize=(12, 6))
-        self.rsi_canvas = FigureCanvasTkAgg(self.rsi_fig, master=self.rsi_tab)
-        self.rsi_canvas.get_tk_widget().pack()
-       
-
-        self.interval_var = StringVar( self.root)
-        self.interval_var.set("1d")  # default value
-        self.interval_var.trace("w", self.update_window)
-
-        self.interval_optionmenu = OptionMenu(self.root, self.interval_var, *supported_intervals)
+            self.notebook = ttk.Notebook(self.root, style='Custom.TNotebook')
+            #탭 추가
+            self.graph_tab = ttk.Frame(self.notebook,style='Custom.TNotebook.Tab')
+            self.notebook.add(self.graph_tab, text='캔들스틱 차트')
         
-        self.window_var = IntVar(self.root)
-        self.window_var.set(20)  # default value
 
-        self.company_label = Label(self.root, text="회사 이름:")
-        self.company_label.pack()
-        self.company_entry = Entry(self.root)
-        self.company_entry.pack()
+            self.gfig = plt.figure(figsize=(12, 6))
+            self.gcanvas = FigureCanvasTkAgg(self.gfig, master=self.graph_tab)
+            self.gcanvas.get_tk_widget().pack()
 
-        self.search_button = Button(self.root, text="검색", command=self.search_stock)
-        self.search_button.place(x=680, y=20, width=50, height=20)
-      
-        self.market = StringVar(self.root,value ='Kor')
-        Nasdaq_bt = Radiobutton(self.root, text="나스닥",value = 'Nasdaq',variable=self.market,  command=  self.ChangeMarket)
-        Nasdaq_bt.pack()
-        korea_bt = Radiobutton(self.root, text="코스피/코스닥",value = 'Kor', variable=self.market, command= self.ChangeMarket)
-        korea_bt.pack()
-       
+            # 볼린저밴드 탭
+            self.bb_tab = ttk.Frame(self.notebook)
+            self.notebook.add(self.bb_tab, text='볼린저밴드')
         
-        self.window_label = Label(self.root, text="이동 평균 기간 선택:")
-        self.window_label.pack()
-        window_spinbox = Spinbox(self.root, from_=1, to=100, textvariable=self.window_var)
-        window_spinbox.pack()
-        self.interval_label = Label(self.root, text="주기 선택:")
-        self.interval_label.place(x=470, y=138, width=100, height=20)
-        self.interval_optionmenu.pack()
-      
-        update_button = Button(self.root, text="차트 업데이트",font=("Arial", 15), command=self.update_chart_thread)
-        update_button.place(x=1000, y=15, width=150, height=130)
+            # RSI 탭 추가
+            self.rsi_tab = ttk.Frame(self.notebook)
+            self.notebook.add(self.rsi_tab, text='RSI')
+            self.rsi_fig = plt.figure(figsize=(12, 6))
+            self.rsi_canvas = FigureCanvasTkAgg(self.rsi_fig, master=self.rsi_tab)
+            self.rsi_canvas.get_tk_widget().pack()
+        
 
-        self.notebook.pack(expand=1, fill='both')
-        self.action_label = Label(self.root, text="현재 주가에 대한 추천: ", font=("Arial", 15))
-        self.action_label.place(x=0, y=50, width=300, height=40)
-        self.market_label = Label(self.root, text="Stock Market : KOSPI / KOSDAQ", font=("Arial", 13))
-        self.market_label.place(x=20, y=100, width=300, height=40)
+            self.interval_var = StringVar( self.root)
+            self.interval_var.set("1d")  # default value
+            self.interval_var.trace("w", self.update_window)
 
-        self.fig = plt.figure(figsize=(12, 6))
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.bb_tab)
-        self.canvas.get_tk_widget().pack()
-        self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_window_close(self.root))
-        self.currentTab = '그래프'
-        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
-        self.update_chart()
+            self.interval_optionmenu = OptionMenu(self.root, self.interval_var, *supported_intervals)
+            self.interval_optionmenu.configure(bg='#FFFFFF',fg='black',highlightbackground='#1A237E', highlightcolor='#1A237E')
 
-        self.root.mainloop()
+            self.window_var = IntVar(self.root)
+            self.window_var.set(20)  # default value
+
+            self.company_label = Label(self.root,bg='#1A237E',fg='#FFFFFF', text="회사 이름:", font=("Arial", 10,'bold'))
+            self.company_label.pack()
+            self.company_entry = Entry(self.root,bg='#F5F5F5',borderwidth=0,highlightthickness=0)
+            self.company_entry.pack()
+
+            self.search_button = Button(self.root, text="검색",bg='#FFFFFF',fg='#1A237E', font=("Arial", 10,'bold'),command=self.search_stock)
+            self.search_button.place(x=680, y=22, width=50, height=20)
+        
+            self.market = StringVar(self.root,value ='Kor')
+            self.Nasdaq_bt = Radiobutton(self.root, text="나스닥",value = 'Nasdaq',bg='#1A237E',fg= '#FFFFFF',activebackground='#1A237E',activeforeground='#BDBDBD', variable=self.market,  command=  self.ChangeMarket)
+            self.Nasdaq_bt.pack()
+            self.korea_bt = Radiobutton(self.root, text="코스피/코스닥",value = 'Kor',fg= '#FFFFFF', bg='#1A237E',activebackground='#1A237E',activeforeground='#BDBDBD', variable=self.market, command= self.ChangeMarket)
+            self.korea_bt.pack()
+        
+            
+            self.window_label = Label(self.root,bg='#1A237E',fg='#FFFFFF', text="이동 평균 기간 선택:",font=("Arial", 12,'bold'))
+            self.window_label.pack()
+            window_spinbox = Spinbox(self.root,bg='#FFFFFF',fg= '#1A237E', from_=1, to=100, textvariable=self.window_var,borderwidth=0,highlightthickness=0)
+            window_spinbox.pack()
+            self.interval_label = Label(self.root,bg='#1A237E',fg='#FFFFFF', text="주기 선택:", font=("Arial", 11,'bold'))
+            self.interval_label.place(x=470, y=138, width=100, height=20)
+            self.interval_optionmenu.pack()
+        
+            update_button = Button(self.root, text="차트 업데이트",fg='#1A237E',bg='#FFFFFF',font=("Arial", 15,'bold'), command=self.update_chart_thread)
+            update_button.place(x=1000, y=15, width=150, height=130)
+
+            self.notebook.pack(expand=1, fill='both')
+            self.action_label = Label(self.root, text="현재 주가에 대한 추천: ",bg='#1A237E',fg='#FFFFFF', font=("Arial", 15,'bold'))
+            self.action_label.place(x=0, y=50, width=300, height=40)
+            self.market_label = Label(self.root, text="Stock Market : KOSPI / KOSDAQ",fg='#FFFFFF',bg='#1A237E', font=("Arial", 13,'bold'))
+            self.market_label.place(x=20, y=100, width=300, height=40)
+
+            self.fig = plt.figure(figsize=(12, 6))
+            self.canvas = FigureCanvasTkAgg(self.fig, master=self.bb_tab)
+            self.canvas.get_tk_widget().pack()
+            self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_window_close(self.root))
+            self.currentTab = '그래프'
+            self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
+            self.update_chart()
+
+            self.root.mainloop()
 
     def on_tab_change(self, event):
         selected_tab = self.notebook.tab(self.notebook.select(), "text")
@@ -293,8 +347,14 @@ class BBMain:
     def ChangeMarket(self):
        
        if self.market.get() == 'Kor':
+           self.korea_bt.config(fg='#FFEB3B')
+           self.Nasdaq_bt.config(fg='#FFFFFF')
+        
            self.market_label.config ( text= "Stock Market : KOSPI / KOSDAQ")
        else:
+           self.Nasdaq_bt.config(fg='#FFEB3B')
+           self.korea_bt.config(fg='#FFFFFF')
+        
            self.market_label.config ( text= "Stock Market : NASDAQ")
     
     def calculate_RSI(self, data, time_window):
