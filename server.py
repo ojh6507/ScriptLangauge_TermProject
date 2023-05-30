@@ -16,7 +16,6 @@ import io
 import googlemaps
 import requests
 import json
-
 from mplfinance.original_flavor import candlestick_ohlc
 import matplotlib.dates as mdates
 
