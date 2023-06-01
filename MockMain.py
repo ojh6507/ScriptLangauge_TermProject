@@ -236,18 +236,19 @@ class MockInvestmentApp:
         #검색 frame
         self.sell_stock_var = StringVar(self.stock_search_frame)
         self.sell_stock_option = OptionMenu(self.stock_search_frame, self.sell_stock_var, [])
-        self.sell_stock_option.place(x=200, y=320, width=100, height=20)
+        self.sell_stock_option.configure(bg='white',fg='black')
+        self.sell_stock_option.place(x=170, y=315, width=120, height=27)
         self.update_sell_option_menu()  # 새로 추가된 메소드 호출
         self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:",bg='white', fg= 'black',font=("Arial",11,"bold") )
         self.search_stock_label.place(x=5, y=30, width=100, height=14)
         self.stock_name_entry = Entry(self.stock_search_frame)
         self.stock_name_entry.place(x=150, y=30, width=150, height=20)
-        self.search_button = Button(self.stock_search_frame, text="검색", command=self.search_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
+        self.search_button = Button(self.stock_search_frame, text="검색",activeforeground='#BDBDBD',activebackground='#303F9F', command=self.search_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
         self.search_button.place(x=350, y=10, width=100, height=100)
-        self.refresh_button = Button(self.stock_search_frame, text="새로고침", command=self.set_data,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold") )
+        self.refresh_button = Button(self.stock_search_frame, text="새로고침",activeforeground='#BDBDBD',activebackground='#303F9F', command=self.set_data,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold") )
         self.refresh_button.place(x=350, y=140, width=100, height=30)
         
-        self.show_Loc_button = Button(self.stock_search_frame, text="기업 위치", command=self.search_Company_info,fg='#FFFFFF',bg='#3F51B5',font=("Arial",11,"bold"))
+        self.show_Loc_button = Button(self.stock_search_frame, text="기업 위치",activeforeground='#BDBDBD',activebackground='#303F9F', command=self.search_Company_info,fg='#FFFFFF',bg='#3F51B5',font=("Arial",11,"bold"))
         self.show_Loc_button.place(x=20, y=140, width=100, height=30)
         
 
@@ -268,16 +269,16 @@ class MockInvestmentApp:
         # 모의 투자
         self.balance_label = Label(self.stock_search_frame, text=f"잔액: {self.balance} 원",font=("Arial",11,"bold") ,bg='white', fg = 'black')
         self.balance_label.place(x=2, y=204, width=130, height=25)        
-        self.buy_stock_button = Button(self.stock_search_frame, text="매수", command= self.buy_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
+        self.buy_stock_button = Button(self.stock_search_frame, text="매수",activeforeground='#BDBDBD',activebackground='#303F9F', command= self.buy_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
         self.buy_stock_button.place(x=350, y=210, width=100, height=90)
-        self.sell_stock_button = Button(self.stock_search_frame, text="매도", command=self.sell_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
+        self.sell_stock_button = Button(self.stock_search_frame, text="매도",activeforeground='#BDBDBD',activebackground='#303F9F', command=self.sell_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
         self.sell_stock_button.place(x=350, y=310, width=100, height=90)  
         self.buy_label = Label(self.stock_search_frame, text="매수 수량 :",font=("Arial",11,"bold") ,bg='white',fg= 'black')
         self.buy_label.place(x=50, y=240, width=100, height=20)        
 
         self.stock_buy_amount_entry = Entry(self.stock_search_frame)
         self.stock_buy_amount_entry.place(x=150, y=240, width=150, height=20)
-        self.buy_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_buy_total,fg='#FFFFFF',bg='#3F51B5',)
+        self.buy_confirm_button = Button(self.stock_search_frame, text="확인",activeforeground='#BDBDBD',activebackground='#303F9F', command=self.calculate_buy_total,fg='#FFFFFF',bg='#3F51B5',)
         self.buy_confirm_button.place(x=305, y=235, width=30, height=30)
         self.buy_total_label = Label(self.stock_search_frame, text="", bg='white',fg= 'black')
         self.buy_total_label.place(x=150, y=270, width=170, height=20)
@@ -287,7 +288,7 @@ class MockInvestmentApp:
         self.sell_label.place(x=50, y=360, width=100, height=20)        
         self.stock_sell_amount_entry = Entry(self.stock_search_frame)
         self.stock_sell_amount_entry.place(x=150, y=360, width=150, height=20)
-        self.sell_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_Sell_total,fg='#FFFFFF',bg='#3F51B5')
+        self.sell_confirm_button = Button(self.stock_search_frame, text="확인",activeforeground='#BDBDBD',activebackground='#303F9F', command=self.calculate_Sell_total,fg='#FFFFFF',bg='#3F51B5')
         self.sell_confirm_button.place(x=305, y=355, width=30, height=30)
 
      
