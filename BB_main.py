@@ -262,7 +262,7 @@ class BBMain:
         
             self.notebook = ttk.Notebook(self.root, style='Custom.TNotebook')
             #탭 추가
-            self.graph_tab = ttk.Frame(self.notebook,style='Custom.TNotebook.Tab')
+            self.graph_tab = ttk.Frame(self.notebook)
             self.notebook.add(self.graph_tab, text='캔들스틱 차트')
         
 
@@ -305,7 +305,8 @@ class BBMain:
             self.Nasdaq_bt.pack()
             self.korea_bt = Radiobutton(self.root, text="코스피/코스닥",value = 'Kor',fg= '#FFFFFF', bg='#1A237E',activebackground='#1A237E',activeforeground='#BDBDBD', variable=self.market, command= self.ChangeMarket)
             self.korea_bt.pack()
-        
+            self.korea_bt.config(fg='#FFEB3B')
+            self.Nasdaq_bt.config(fg='#FFFFFF')
             
             self.window_label = Label(self.root,bg='#1A237E',fg='#FFFFFF', text="이동 평균 기간 선택:",font=("Arial", 12,'bold'))
             self.window_label.pack()
