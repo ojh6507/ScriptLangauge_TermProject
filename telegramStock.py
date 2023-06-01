@@ -1,20 +1,19 @@
 from telegram import *
 from telegram.ext import *
 from stock_search import *
-import os
 from server import*
 token=apikey.get_Telegram_KEY()
 #tukorea_stock_bot
 SELECT_COMPANY = 1
 compnay_dict = {}
 
-client = Client()
-APP_KEY = client.get_KoreaInvest_ID()
-APP_SECRET = client.get_KoreaInvest_SECRET()
+
+APP_KEY = apikey.get_KI_api_key()
+APP_SECRET = apikey.get_KI_api_psw()
 ACCESS_TOKEN = ''
-CANO = client.get_CANO()
-ACNT_PRDT_CD = client.get_ACNT_PRDT_CD()
-URL_BASE = client.get_URL_Base()
+CANO = apikey.get_CANO()
+ACNT_PRDT_CD =apikey.get_ACNT_PRDT_CD()
+URL_BASE = apikey.get_URL_Base()
 
 def get_access_token():
     global ACCESS_TOKEN
