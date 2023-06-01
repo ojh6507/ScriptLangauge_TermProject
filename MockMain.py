@@ -37,12 +37,12 @@ class MockInvestmentApp:
 
    
         self.style.theme_create(self.theme_name, parent="alt", settings={
-                "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0],"background":"white"}},
+                "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0],"background":"#3f51b5"}},
                 "TNotebook.Tab": {
-                    "configure": {"padding": [10, 5], "background": "white","foreground": "black"},
-                    "map": {"background": [("selected", "#3F51B5")],"foreground": [("selected", "white")]},
+                    "configure": {"padding": [10, 5], "background": "#3f51b5","foreground": "#FFFFFF"},
+                    "map": {"background": [("selected", "white")],"foreground": [("selected", "black")]},
                 }
-        })
+            })
 
         self.style.theme_use(self.theme_name)
 
@@ -415,13 +415,14 @@ class MockInvestmentApp:
        
 
     def set_data(self):
-        code = self.ticker[:-3]
-        temp2 = self.get_price(code)
-        self.current_price = int(temp2['stck_prpr'])
-        self.open_price =  int(temp2['stck_oprc'])
-        self.high_price = int(temp2['stck_hgpr'])
-        self.lower_price = int(temp2['stck_lwpr'])
-        self.show_Select_INFO(self.key)
+        if self.ticker:
+            code = self.ticker[:-3]
+            temp2 = self.get_price(code)
+            self.current_price = int(temp2['stck_prpr'])
+            self.open_price =  int(temp2['stck_oprc'])
+            self.high_price = int(temp2['stck_hgpr'])
+            self.lower_price = int(temp2['stck_lwpr'])
+            self.show_Select_INFO(self.key)
 
     
         
