@@ -18,11 +18,13 @@ import requests
 import json
 from mplfinance.original_flavor import candlestick_ohlc
 import matplotlib.dates as mdates
-
+import random
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from pandas import DataFrame
 from pandas_datareader import data as pdr
 from datetime import datetime, timedelta
 import urllib.parse
-    
+import apikey
+
+
