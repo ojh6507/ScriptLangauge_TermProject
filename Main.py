@@ -78,8 +78,8 @@ class Main:
         client = Client()
         url = "https://openapi.naver.com/v1/search/news.json"
         headers = {
-            "X-Naver-Client-Id": client.get_Naver_Client_ID(),
-            "X-Naver-Client-Secret": client.get_Naver_Client_SECRET()
+            "X-Naver-Client-Id":  apikey.get_naver_api_key(),
+            "X-Naver-Client-Secret": apikey.get_naver_api_psw()
         }
 
         params = {
