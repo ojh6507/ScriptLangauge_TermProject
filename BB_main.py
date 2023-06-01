@@ -253,7 +253,7 @@ class BBMain:
                 "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0],"background":"#3f51b5"}},
                 "TNotebook.Tab": {
                     "configure": {"padding": [10, 5], "background": "#3f51b5","foreground": "#FFFFFF"},
-                    "map": {"background": [("selected", "#7986cb")],"foreground": [("selected", "black")]},
+                    "map": {"background": [("selected", "white")],"foreground": [("selected", "black")]},
                 }
             })
             self.style.theme_use("custom_theme")
