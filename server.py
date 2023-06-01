@@ -9,7 +9,6 @@ from tkinter import ttk
 from bs4 import BeautifulSoup
 import tkinter.messagebox as messagebox
 import matplotlib.pyplot as plt
-from Client import*
 import pickle
 from PIL import Image as PILImage, ImageTk
 import io
