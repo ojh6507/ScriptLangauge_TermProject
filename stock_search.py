@@ -21,6 +21,8 @@ def search_companies_naver(name):
                 category_market = '.KS'
             elif market_type=='코스닥':
                 category_market = '.KQ'
+            elif market_type =='코넥스':
+                 category_market = '.KN'
             companies[company_name] = company_code + category_market        
         return companies
     else:
