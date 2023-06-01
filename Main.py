@@ -4,8 +4,9 @@ import webbrowser
 import MockMain
 import Portfolio
 from io import BytesIO
+import multiprocessing
 from server import *
-
+import telegramStock
 
 class Main:
     def on_portfolio_click(self):
@@ -60,6 +61,7 @@ class Main:
         self.bollinger_button = Button(frame, text="차트 분석",font=("Arial", 11,'bold'),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.on_bollinger_click,height=3)
         self.bollinger_button.grid(column=2, row=0, padx=13, pady=15)
         self.window.mainloop()
+        
 
     def move_label(self):
         current_position = self.news_label.winfo_x()
@@ -75,7 +77,6 @@ class Main:
 
     
     def get_naver_news(self, query):
-        client = Client()
         url = "https://openapi.naver.com/v1/search/news.json"
         headers = {
             "X-Naver-Client-Id":  apikey.get_naver_api_key(),
@@ -100,5 +101,8 @@ class Main:
         self.news_label.config(text=news_title)
         self.current_index = (self.current_index + 1) % len(self.articles)
      
-
-Main()
+if __name__ =='__main__':
+    teleg = multiprocessing.Process(target=telegramStock.main)
+    teleg.start()
+    Main()
+    teleg.join()
