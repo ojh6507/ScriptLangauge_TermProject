@@ -4,13 +4,13 @@ import os
 import mock_Stock
 
 
-client = Client()
-APP_KEY = client.get_KoreaInvest_ID()
-APP_SECRET = client.get_KoreaInvest_SECRET()
+
+APP_KEY = apikey.get_KI_api_key()
+APP_SECRET = apikey.get_KI_api_psw()
 ACCESS_TOKEN = ''
-CANO = client.get_CANO()
-ACNT_PRDT_CD = client.get_ACNT_PRDT_CD()
-URL_BASE = client.get_URL_Base()
+CANO = apikey.get_CANO()
+ACNT_PRDT_CD =apikey.get_ACNT_PRDT_CD()
+URL_BASE = apikey.get_URL_Base()
 
 def get_access_token():
     """토큰 발급"""
@@ -28,9 +28,24 @@ class MockInvestmentApp:
     def __init__(self,master):
         global ACCESS_TOKEN
         self.root = Toplevel(master)
+        self.root.configure(bg='white')
         self.root.title("주식 모의투자 앱")
         self.root.geometry("475x440")
         ACCESS_TOKEN = get_access_token()
+        self.style = ttk.Style()
+        self.theme_name = 'custom_theme' + str(random.randint(0, 10000))
+
+   
+        self.style.theme_create(self.theme_name, parent="alt", settings={
+                "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0],"background":"white"}},
+                "TNotebook.Tab": {
+                    "configure": {"padding": [10, 5], "background": "white","foreground": "black"},
+                    "map": {"background": [("selected", "#3F51B5")],"foreground": [("selected", "white")]},
+                }
+        })
+
+        self.style.theme_use(self.theme_name)
+
         self.ticker =''
         self.initBuy = False
         self.stocks = [] 
@@ -44,8 +59,8 @@ class MockInvestmentApp:
 
         self.balance = self.user.getBalance()  # 초기 잔액 설정
         self.create_widgets()
-        c = Client()
-        self.mapAPIKey = c.get_GoogleMap_KEY()
+       
+        self.mapAPIKey = apikey.get_GoogleMap_KEY()
         self.gmaps = googlemaps.Client(key=self.mapAPIKey)
   
       
@@ -182,92 +197,100 @@ class MockInvestmentApp:
           # Notebook 생성
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill='both', expand=True)
+      
+        bg_image = PhotoImage(file='MockBackground.png')
+        bg_image2 = PhotoImage(file='MockBackground2.png')
         # 주식 검색 탭
         self.stock_search_frame = Frame(self.notebook)
         self.notebook.add(self.stock_search_frame, text="메인 메뉴")
+      
+        bg_label = Label(self.stock_search_frame, image=bg_image)
+        bg_label.place(x=-1, y=-1,relheight=1,relwidth=1)
+      
+        # 이미지 참조 유지
+        bg_label.image = bg_image
+      
         # 포트폴리오 탭
         self.portfolio_frame = Frame(self.notebook)
         self.notebook.add(self.portfolio_frame, text="포트폴리오")
+      
+        bg_label2 = Label(self.portfolio_frame, image=bg_image2)
+        bg_label2.place(x=-1, y=-1,relheight=1,relwidth=1)
+      
+        # 이미지 참조 유지
+        bg_label2.image = bg_image2
+      
         # 포트폴리오 Frame
         self.portfolio_listbox = Listbox(self.portfolio_frame,width=40)
         self.portfolio_listbox.pack(padx=20, pady=20)
         self.reset_button = Button(self.portfolio_frame, text="초기화", command=self.reset_stocks)
-        self.reset_button.place(x=250, y=200, width=40, height=30)
+        self.reset_button.place(x=230, y=200, width=45, height=30)
         self.sav_button = Button(self.portfolio_frame, text="저장", command=self.save_stocks)
-        self.sav_button.place(x=290, y=200, width=30, height=30)
+        self.sav_button.place(x=277, y=200, width=40, height=30)
         self.sav_button = Button(self.portfolio_frame, text="불러오기", command=self.load_stocks)
-        self.sav_button.place(x=330, y=200, width=50, height=30)
+        self.sav_button.place(x=320, y=200, width=53, height=30)
 
 
+
+       
         #검색 frame
         self.sell_stock_var = StringVar(self.stock_search_frame)
         self.sell_stock_option = OptionMenu(self.stock_search_frame, self.sell_stock_var, [])
         self.sell_stock_option.place(x=200, y=320, width=100, height=20)
         self.update_sell_option_menu()  # 새로 추가된 메소드 호출
-        self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:")
+        self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:",bg='white', fg= 'black',font=("Arial",11,"bold") )
         self.search_stock_label.place(x=5, y=30, width=100, height=14)
         self.stock_name_entry = Entry(self.stock_search_frame)
         self.stock_name_entry.place(x=150, y=30, width=150, height=20)
-        self.search_button = Button(self.stock_search_frame, text="검색", command=self.search_stock)
+        self.search_button = Button(self.stock_search_frame, text="검색", command=self.search_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
         self.search_button.place(x=350, y=10, width=100, height=100)
-        self.refresh_button = Button(self.stock_search_frame, text="새로고침", command=self.set_data)
+        self.refresh_button = Button(self.stock_search_frame, text="새로고침", command=self.set_data,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold") )
         self.refresh_button.place(x=350, y=140, width=100, height=30)
         
-        self.show_Loc_button = Button(self.stock_search_frame, text="기업 위치", command=self.search_Company_info)
+        self.show_Loc_button = Button(self.stock_search_frame, text="기업 위치", command=self.search_Company_info,fg='#FFFFFF',bg='#3F51B5',font=("Arial",11,"bold"))
         self.show_Loc_button.place(x=20, y=140, width=100, height=30)
         
 
-        self.stocks_label = Label(self.stock_search_frame, text="검색결과:")
+        self.stocks_label = Label(self.stock_search_frame, text="검색결과:",bg='white', fg= 'black',font=("Arial",11,"bold") )
         self.stocks_label.place(x=0, y=100, width=100, height=20)
 
-        self.stocks_name = Label(self.stock_search_frame, text="")
+        self.stocks_name = Label(self.stock_search_frame, text="",font=("Arial",11,"bold"), bg='white',fg= 'black')
         self.stocks_name.place(x=140, y=80, width=130, height=20)
-        self.stock_curr_label = Label(self.stock_search_frame, text="")
+        self.stock_curr_label = Label(self.stock_search_frame, text="",font=("Arial",10,"bold") ,bg='white',fg= 'black')
         self.stock_curr_label.place(x=150, y=100, width=110, height=20)
-        self.stock_open_label = Label(self.stock_search_frame, text="")
+        self.stock_open_label = Label(self.stock_search_frame,font=("Arial",10,"bold") , text="",bg='white',fg= 'black')
         self.stock_open_label.place(x=150, y=120, width=110, height=20)
-        self.stock_high_label = Label(self.stock_search_frame, text="")
+        self.stock_high_label = Label(self.stock_search_frame,font=("Arial",10,"bold") , text="",bg='white',fg= 'black')
         self.stock_high_label.place(x=150, y=140, width=110, height=20)
-        self.stock_lower_label = Label(self.stock_search_frame, text="")
+        self.stock_lower_label = Label(self.stock_search_frame,font=("Arial",10,"bold") , text="",bg='white',fg= 'black')
         self.stock_lower_label.place(x=150, y=160, width=110, height=20)
      
         # 모의 투자
-        self.balance_label = Label(self.stock_search_frame, text=f"잔액: {self.balance} 원")
-        self.balance_label.place(x=10, y=210, width=100, height=20)        
-        self.buy_stock_button = Button(self.stock_search_frame, text="매수", command= self.buy_stock)
-        self.buy_stock_button.place(x=350, y=210, width=100, height=100)
-        self.sell_stock_button = Button(self.stock_search_frame, text="매도", command=self.sell_stock)
-        self.sell_stock_button.place(x=350, y=320, width=100, height=100)  
-        self.buy_label = Label(self.stock_search_frame, text="매수 수량 :")
-
+        self.balance_label = Label(self.stock_search_frame, text=f"잔액: {self.balance} 원",font=("Arial",11,"bold") ,bg='white', fg = 'black')
+        self.balance_label.place(x=2, y=204, width=130, height=25)        
+        self.buy_stock_button = Button(self.stock_search_frame, text="매수", command= self.buy_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
+        self.buy_stock_button.place(x=350, y=210, width=100, height=90)
+        self.sell_stock_button = Button(self.stock_search_frame, text="매도", command=self.sell_stock,fg='#FFFFFF',bg='#3F51B5',font=("Arial",10,"bold"))
+        self.sell_stock_button.place(x=350, y=310, width=100, height=90)  
+        self.buy_label = Label(self.stock_search_frame, text="매수 수량 :",font=("Arial",11,"bold") ,bg='white',fg= 'black')
         self.buy_label.place(x=50, y=240, width=100, height=20)        
+
         self.stock_buy_amount_entry = Entry(self.stock_search_frame)
         self.stock_buy_amount_entry.place(x=150, y=240, width=150, height=20)
-        self.buy_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_buy_total)
+        self.buy_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_buy_total,fg='#FFFFFF',bg='#3F51B5',)
         self.buy_confirm_button.place(x=305, y=235, width=30, height=30)
-        self.buy_total_label = Label(self.stock_search_frame, text="")
+        self.buy_total_label = Label(self.stock_search_frame, text="", bg='white',fg= 'black')
         self.buy_total_label.place(x=150, y=270, width=170, height=20)
 
 
-        self.sell_label = Label(self.stock_search_frame, text="매도 수량 :")
+        self.sell_label = Label(self.stock_search_frame, text="매도 수량 :",font=("Arial",11,"bold") ,bg='white', fg= 'black')
         self.sell_label.place(x=50, y=360, width=100, height=20)        
         self.stock_sell_amount_entry = Entry(self.stock_search_frame)
         self.stock_sell_amount_entry.place(x=150, y=360, width=150, height=20)
-        self.sell_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_Sell_total)
+        self.sell_confirm_button = Button(self.stock_search_frame, text="확인", command=self.calculate_Sell_total,fg='#FFFFFF',bg='#3F51B5')
         self.sell_confirm_button.place(x=305, y=355, width=30, height=30)
 
-        XLine = Canvas(self.stock_search_frame, width=470, height=1, bg='black')
-        XLine.place(x=0, y=1)
-        XLine = Canvas(self.stock_search_frame, width=470, height=1, bg='black')
-        XLine.place(x=0, y=200)
-      
-        XLine = Canvas(self.stock_search_frame, width=470, height=1, bg='black')
-        XLine.place(x=0, y=430)
-        YLine = Canvas(self.stock_search_frame, width=1, height=430, bg='black')
-        YLine.place(x= 470, y= 0)
-        YLine = Canvas(self.stock_search_frame, width=1, height=430, bg='black')
-        YLine.place(x= 1, y= 0)
-        self.search_stock_label = Label(self.stock_search_frame, text="주식 검색:")
+     
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
     
   
@@ -357,13 +380,13 @@ class MockInvestmentApp:
 
             self.results_listbox.pack(padx=20, pady=20)
 
-            prev_button = Button(self.search_results_window, text="Prev", command=self.prev_page)
+            prev_button = Button(self.search_results_window, text="Prev", command=self.prev_page,fg='#FFFFFF',bg='#3F51B5',)
             prev_button.pack(side=LEFT)
 
-            next_button = Button(self.search_results_window, text="Next", command=self.next_page)
+            next_button = Button(self.search_results_window, text="Next", command=self.next_page,fg='#FFFFFF',bg='#3F51B5',)
             next_button.pack(side=RIGHT)
 
-            select_button = Button(self.search_results_window, text="선택", command=self.on_result_select)
+            select_button = Button(self.search_results_window, text="선택", command=self.on_result_select,fg='#FFFFFF',bg='#3F51B5',)
             select_button.pack(padx=20, pady=20)
       
 
