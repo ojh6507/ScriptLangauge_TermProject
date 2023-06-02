@@ -104,7 +104,6 @@ class portfolio:
             self.total_price = int(self.stock_price_blank.get()) * int(self.stock_count_blank.get())
             s_amount = int(self.stock_count_blank.get())
             div_money = self.update_Div(self.ticker)
-            print(div_money)
             self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price //s_amount, amount= s_amount, div_money= div_money)
             self.stocks.append(self.currentStock)
         self.sub_window.destroy()
