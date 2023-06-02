@@ -1,6 +1,6 @@
 from server import *
 import stock_search
-
+import mock_Stock
 APP_KEY = apikey.get_KI_api_key()
 APP_SECRET = apikey.get_KI_api_psw()
 ACCESS_TOKEN = ''
@@ -24,6 +24,9 @@ class portfolio:
     def __init__(self,root):
         global ACCESS_TOKEN
         ACCESS_TOKEN = get_access_token()
+        
+        self.stocks = []
+        
         self.window = Toplevel(root)
         self.window.title('포트폴리오')
         self.window.geometry('420x310')
@@ -37,9 +40,27 @@ class portfolio:
         self.sav_button.place(x=260, y=190, width=32, height=30)
         self.sav_button = Button(self.window, text="불러오기",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.load_stocks)
         self.sav_button.place(x=300, y=190, width=52, height=30)
-
         self.window.mainloop()
     
+    def calculate_profit(self, stock):
+        # 현재 가격 구하기
+        self.ticker =stock.getTicker()
+        self.key = stock.getName()
+        self.set_data()
+        # 구매 가격 구하기
+        purchase_price = stock.get_per_Price()
+        # 수익률 계산하기
+        profit_rate = (self.current_price - purchase_price) / purchase_price * 100
+        return profit_rate
+    
+    def update_portfolio_listbox(self):
+        # 리스트 박스 초기화
+        self.portfolio_listbox.delete(0, END)
+
+        # 딕셔너리에 저장된 주식 정보를 리스트 박스에 추가
+        for s in self.stocks:
+            profit_rate = self.calculate_profit(s) 
+            self.portfolio_listbox.insert(END, f"{s.getName()}: {s.get_total_Price()} 원 | {s.getAmount()} 주 | 수익률: {profit_rate:.2f}%")
 
     def set_data(self):
         if self.ticker:
@@ -47,6 +68,16 @@ class portfolio:
             temp2 = self.get_price(code)
             self.current_price = int(temp2['stck_prpr'])
           
+    def confirm(self):
+        if self.sl_name and self.ticker and self.stock_price_blank.get() and self.stock_count_blank.get():
+            self.total_price = int(self.stock_price_blank.get()) * int(self.stock_count_blank.get())
+            s_amount = int(self.stock_count_blank.get())
+            self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price //s_amount, amount= s_amount)
+            self.stocks.append(self.currentStock)
+        self.sub_window.destroy()
+        self.update_portfolio_listbox()
+    
+
 
     def on_result_select(self):
         self.selected_index = self.results_listbox.curselection()
@@ -55,14 +86,13 @@ class portfolio:
             self.key = self.results_listbox.get(self.selected_index[0])
             self.stock_name_blank.delete(0, END)  # 기존 텍스트 삭제
             self.stock_name_blank.insert(0, self.key)  # 새로운 텍스트 삽입
+            self.sl_name = self.key
             self.ticker = self.results[self.key]
 
             self.set_data()
             
             self.search_results_window.destroy()
 
-    def confirm(self):
-        pass
     
     def next_page(self):
         self.start_index += 5
@@ -121,39 +151,53 @@ class portfolio:
             select_button.pack(padx=20, pady=20)
 
     def add_stock(self):
-        sub_window = Toplevel(self.window)
-        sub_window.title('주식 추가')
-        sub_window.geometry('280x150')
-        sub_window.configure(bg='white')
-        stock_name_label = Label(sub_window,text = '종목명: ',bg='white',font=("Arial",11,"bold"))
+        self.sub_window = Toplevel(self.window)
+        self.sub_window.title('주식 추가')
+        self.sub_window.geometry('280x150')
+        self.sub_window.configure(bg='white')
+        stock_name_label = Label(self.sub_window,text = '종목명: ',bg='white',font=("Arial",11,"bold"))
         stock_name_label.place(x=10, y=10, w=100,h=20)
-        self.stock_name_blank = Entry(sub_window)
+        self.stock_name_blank = Entry(self.sub_window)
         self.stock_name_blank.place(x=100, y=10, w=100,h=20)
 
-        searchB = Button(sub_window,text='검색',font=("Arial",10,"bold") ,activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', 
+        searchB = Button(self.sub_window,text='검색',font=("Arial",10,"bold") ,activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', 
                          command= self.show_search_results)
         searchB.place(x=205, y=10, w=40,h=25)
 
-        stock_price_label = Label(sub_window,font=("Arial",11,"bold"),bg='white',text = '매입가: ')
+        stock_price_label = Label(self.sub_window,font=("Arial",11,"bold"),bg='white',text = '매입가: ')
         stock_price_label.place(x=10, y=50, w=100,h=20)
-        stock_price_blank = Entry(sub_window)
-        stock_price_blank.place(x=100, y=50, w=100,h=20)
+        self.stock_price_blank = Entry(self.sub_window)
+        self.stock_price_blank.place(x=100, y=50, w=100,h=20)
         
-        stock_count_label = Label(sub_window,font=("Arial",11,"bold"),bg='white' ,text = '수량: ')
+        stock_count_label = Label(self.sub_window,font=("Arial",11,"bold"),bg='white' ,text = '수량: ')
         stock_count_label.place(x=10, y=90, w=100,h=20)
-        stock_count_blank = Entry(sub_window)
-        stock_count_blank.place(x=100, y=90, w=100,h=20)
+        self.stock_count_blank = Entry(self.sub_window)
+        self.stock_count_blank.place(x=100, y=90, w=100,h=20)
         
-        confirmB = Button(sub_window,text='확인',font=("Arial",11,"bold") ,activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.confirm)
+        confirmB = Button(self.sub_window,text='확인',font=("Arial",11,"bold") ,activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.confirm)
         confirmB.place(x=-55,y=120,w=400,h=30)
-        sub_window.mainloop()
-        pass
+        self.sub_window.mainloop()
+
     def save_stocks(self):
         pass
     def load_stocks(self):
         pass
+     
+    def save_stocks(self):
+        with open('stocks.pkl', 'wb') as f:
+            pickle.dump(self.stocks, f)
+            messagebox.showinfo("알림", "저장 완료")
 
-
+    def load_stocks(self):
+        try:
+            with open('stocks.pkl', 'rb') as f:
+                self.stocks = pickle.load(f)
+      
+                messagebox.showinfo("알림", "불러오기 완료")
+                self.update_portfolio_listbox()
+        except FileNotFoundError:
+            messagebox.showinfo("알림", "저장된 정보가 없습니다")
+    
 if __name__ == '__main__':
     root = Tk()
     portfolio(root)
