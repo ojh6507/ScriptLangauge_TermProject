@@ -32,16 +32,17 @@ class portfolio:
         self.window.geometry('420x310')
         self.window.configure(bg='white')
         self.portfolio_listbox = Listbox(self.window,width=40)
-        self.portfolio_listbox.pack(padx=20, pady=20)
+        self.portfolio_listbox.place(x=10, y=20,width=395, height= 180)
         self.add_button = Button(self.window, text="추가",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.add_stock)
-        self.add_button.place(x=220, y=190, width=32, height=30)
+        self.add_button.place(x=220, y=210, width=32, height=30)
       
         self.sav_button = Button(self.window, text="저장",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.save_stocks)
-        self.sav_button.place(x=260, y=190, width=32, height=30)
+        self.sav_button.place(x=260, y=210, width=32, height=30)
         self.sav_button = Button(self.window, text="불러오기",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.load_stocks)
-        self.sav_button.place(x=300, y=190, width=52, height=30)
+        self.sav_button.place(x=300, y=210, width=52, height=30)
+        self.load_init_stocks()
         self.window.mainloop()
-    
+
     def calculate_profit(self, stock):
         # 현재 가격 구하기
         self.ticker =stock.getTicker()
@@ -60,19 +61,51 @@ class portfolio:
         # 딕셔너리에 저장된 주식 정보를 리스트 박스에 추가
         for s in self.stocks:
             profit_rate = self.calculate_profit(s) 
-            self.portfolio_listbox.insert(END, f"{s.getName()}: {s.get_total_Price()} 원 | {s.getAmount()} 주 | 수익률: {profit_rate:.2f}%")
+            div_money =str(s.getDiv_money())
+            div_money = div_money[:-1]
+            div_money = div_money.replace(",","")
+            
+            total_div = int(div_money)*s.getAmount()
+
+            self.portfolio_listbox.insert(END, f"{s.getName()}: {s.get_total_Price()} 원 | {s.getAmount()} 주 | 주당 배당금: {s.getDiv_money()} | 총 배당금:{total_div} 원")
 
     def set_data(self):
         if self.ticker:
             code = self.ticker[:-3]
             temp2 = self.get_price(code)
             self.current_price = int(temp2['stck_prpr'])
-          
+    def update_Div(self,ticker):
+        s_ticker = ticker[:-3]
+        url = f"https://navercomp.wisereport.co.kr/v2/company/c1010001.aspx?cmp_cd={s_ticker}&cn="
+        # requests 라이브러리를 사용하여 웹 페이지의 HTML을 가져옵니다.
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"
+            }
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            # BeautifulSoup 객체를 생성하여 HTML을 파싱합니다.
+            soup = BeautifulSoup(response.text, 'html.parser')
+            datas = soup.find_all('td', {'class': 'num noline-right'})
+            sl = []
+            for element in datas:
+                if '원' in element.get_text():
+                    sl.append(element.get_text())
+            if sl:
+                return sl[-1]
+            else:
+                return 0
+        
+
+                
+            
+
     def confirm(self):
         if self.sl_name and self.ticker and self.stock_price_blank.get() and self.stock_count_blank.get():
             self.total_price = int(self.stock_price_blank.get()) * int(self.stock_count_blank.get())
             s_amount = int(self.stock_count_blank.get())
-            self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price //s_amount, amount= s_amount)
+            div_money = self.update_Div(self.ticker)
+            print(div_money)
+            self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price //s_amount, amount= s_amount, div_money= div_money)
             self.stocks.append(self.currentStock)
         self.sub_window.destroy()
         self.update_portfolio_listbox()
@@ -197,7 +230,13 @@ class portfolio:
                 self.update_portfolio_listbox()
         except FileNotFoundError:
             messagebox.showinfo("알림", "저장된 정보가 없습니다")
-    
+    def load_init_stocks(self):
+        try:
+            with open('stocks.pkl', 'rb') as f:
+                self.stocks = pickle.load(f)
+                self.update_portfolio_listbox()
+        except FileNotFoundError:
+            pass
 if __name__ == '__main__':
     root = Tk()
     portfolio(root)
