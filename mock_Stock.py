@@ -28,4 +28,4 @@ class USER:
         self.balance = money
 
     def reset(self):
-        self.set_balance=1000000
+        self.set_balance(1000000)
