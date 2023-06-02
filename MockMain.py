@@ -1,6 +1,6 @@
+import os
 from server import*
 import stock_search
-import os
 import mock_Stock
 
 
@@ -185,6 +185,7 @@ class MockInvestmentApp:
         for s in self.stocks:
             profit_rate = self.calculate_profit(s) 
             self.portfolio_listbox.insert(END, f"{s.getName()}: {s.get_total_Price()} 원 | {s.getAmount()} 주 | 수익률: {profit_rate:.2f}%")
+    
     def update_sell_option_menu(self):
         # 메뉴 초기화
         self.sell_stock_option['menu'].delete(0, 'end')
@@ -292,24 +293,30 @@ class MockInvestmentApp:
         self.sell_confirm_button.place(x=305, y=355, width=30, height=30)
 
      
-        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
+        #self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
     
   
-    def on_tab_change(self, event):
-        selected_tab = self.notebook.tab(self.notebook.select(), "text")
-        if selected_tab == "포트폴리오":
-            self.update_portfolio_listbox()
+    # def on_tab_change(self, event):
+    #     selected_tab = self.notebook.tab(self.notebook.select(), "text")
+    #     if selected_tab == "포트폴리오":
+    #         self.update_portfolio_listbox()
 
     '''포트폴리오 초기화'''
     def reset_stocks(self):
         self.portfolio_listbox.delete(0, END)
-        self.stocks
+        self.stocks.clear()
         self.user.reset()  # 사용자 정보 초기화
+
+        self.balance =self.user.getBalance()
+        self.balance_label.config(text = f"잔액: {self.balance} 원")
         if os.path.exists('stocks.pkl'):
             os.remove('stocks.pkl')  # stocks.pkl 파일 삭제
         if os.path.exists('user.pkl'):
             os.remove('user.pkl')  # user.pkl 파일 삭제
+        
         messagebox.showinfo("알림", "리셋 완료")
+        self.update_portfolio_listbox()
+        self.update_sell_option_menu() 
 
     '''모의투자 포트폴리오 저장'''
     def save_stocks(self):
@@ -326,6 +333,7 @@ class MockInvestmentApp:
                 self.stocks = pickle.load(f)
       
                 messagebox.showinfo("알림", "불러오기 완료")
+                self.update_portfolio_listbox()
         except FileNotFoundError:
             messagebox.showinfo("알림", "저장된 정보가 없습니다")
 
