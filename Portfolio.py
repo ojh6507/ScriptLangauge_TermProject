@@ -1,3 +1,4 @@
+import os
 from server import *
 import stock_search
 import mock_Stock
@@ -21,6 +22,7 @@ def get_access_token():
     return ACCESS_TOKEN
 
 class portfolio:
+
     def __init__(self,root):
         global ACCESS_TOKEN
         ACCESS_TOKEN = get_access_token()
@@ -40,6 +42,11 @@ class portfolio:
         self.sav_button.place(x=260, y=210, width=32, height=30)
         self.sav_button = Button(self.window, text="불러오기",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.load_stocks)
         self.sav_button.place(x=300, y=210, width=52, height=30)
+
+        self.res_button = Button(self.window, text="초기화",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.reset_stocks)
+        self.res_button.place(x=360, y=210, width=52, height=30)
+
+
         self.load_init_stocks()
         self.window.mainloop()
 
@@ -181,7 +188,16 @@ class portfolio:
 
             select_button = Button(self.search_results_window, text="선택", command=self.on_result_select,fg='#FFFFFF',bg='#3F51B5',)
             select_button.pack(padx=20, pady=20)
+    
+    def reset_stocks(self):
+        self.portfolio_listbox.delete(0, END)
+        self.stocks.clear()
+        
+        if os.path.exists('Pstocks.pkl'):
+            os.remove('Pstocks.pkl')  # Pstocks.pkl 파일 삭제
+            messagebox.showinfo("알림", "리셋 완료")
 
+        self.update_portfolio_listbox()
     def add_stock(self):
         self.sub_window = Toplevel(self.window)
         self.sub_window.title('주식 추가')
@@ -210,19 +226,15 @@ class portfolio:
         confirmB.place(x=-55,y=120,w=400,h=30)
         self.sub_window.mainloop()
 
+   
     def save_stocks(self):
-        pass
-    def load_stocks(self):
-        pass
-     
-    def save_stocks(self):
-        with open('stocks.pkl', 'wb') as f:
+        with open('Pstocks.pkl', 'wb') as f:
             pickle.dump(self.stocks, f)
             messagebox.showinfo("알림", "저장 완료")
 
     def load_stocks(self):
         try:
-            with open('stocks.pkl', 'rb') as f:
+            with open('Pstocks.pkl', 'rb') as f:
                 self.stocks = pickle.load(f)
       
                 messagebox.showinfo("알림", "불러오기 완료")
@@ -231,7 +243,7 @@ class portfolio:
             messagebox.showinfo("알림", "저장된 정보가 없습니다")
     def load_init_stocks(self):
         try:
-            with open('stocks.pkl', 'rb') as f:
+            with open('Pstocks.pkl', 'rb') as f:
                 self.stocks = pickle.load(f)
                 self.update_portfolio_listbox()
         except FileNotFoundError:
