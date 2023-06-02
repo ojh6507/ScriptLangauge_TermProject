@@ -1,0 +1,10 @@
+BB_main
+Main
+MockMain
+Portfolio
+apikey
+bollinger_bands
+mock_Stock
+server
+stock_search
+telegramStock
