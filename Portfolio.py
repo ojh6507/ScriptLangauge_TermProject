@@ -33,8 +33,8 @@ class portfolio:
         self.window.title('포트폴리오')
         self.window.geometry('420x310')
         self.window.configure(bg='white')
-        self.portfolio_listbox = Listbox(self.window,width=40)
-        self.portfolio_listbox.place(x=10, y=20,width=395, height= 180)
+        self.portfolio_listbox = Listbox(self.window,width=55)
+        self.portfolio_listbox.place(x=5, y=20,width=405, height= 180)
         self.add_button = Button(self.window, text="추가",font=("Arial",8,"bold"),activeforeground='#BDBDBD',activebackground='#303F9F',fg='#FFFFFF',bg='#3F51B5', command=self.add_stock)
         self.add_button.place(x=220, y=210, width=32, height=30)
       
@@ -74,7 +74,7 @@ class portfolio:
             
             total_div = int(div_money)*s.getAmount()
 
-            self.portfolio_listbox.insert(END, f"{s.getName()}: {s.get_total_Price()} 원 | {s.getAmount()} 주 | 주당 배당금: {s.getDiv_money()} | 총 배당금:{total_div} 원")
+            self.portfolio_listbox.insert(END, f"{s.getName()}: 총 {s.get_total_Price()} 원 | {s.getAmount()} 주 | 주당 배당금: {s.getDiv_money()} | 총 배당금:{total_div} 원")
 
     def set_data(self):
         if self.ticker:
@@ -103,16 +103,50 @@ class portfolio:
                 return 0
         
 
-                
+            # if self.balance - self.total_price > 0:
+            # self.currentStock = mock_Stock.STOCK(name = self.sl_name, ticker = self.ticker, price= self.total_price // self.amount, amount= self.amount)
+            # self.balance -= self.total_price
+
+            # existing_stock = None
+            # for stock in self.stocks:
+            #     if stock.getTicker() == self.ticker:
+            #         existing_stock = stock
+            #         break
+            
+            # if existing_stock is None:
+            #     self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price // self.amount, amount=self.amount)
+            #     self.stocks.append(self.currentStock)
+            # else:
+            #     existing_stock.update_amount(self.amount)
+
+            # self.update_portfolio_listbox()
+            
             
 
     def confirm(self):
+
         if self.sl_name and self.ticker and self.stock_price_blank.get() and self.stock_count_blank.get():
+           
             self.total_price = int(self.stock_price_blank.get()) * int(self.stock_count_blank.get())
             s_amount = int(self.stock_count_blank.get())
             div_money = self.update_Div(self.ticker)
-            self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price //s_amount, amount= s_amount, div_money= div_money)
-            self.stocks.append(self.currentStock)
+           
+            existing_stock = None
+           
+            for stock in self.stocks:
+                if stock.getTicker() == self.ticker:
+                    existing_stock = stock
+                    break
+            if existing_stock ==None:
+                self.currentStock = mock_Stock.STOCK(name=self.sl_name, ticker=self.ticker, price=self.total_price //s_amount, amount= s_amount, div_money= div_money)
+                self.stocks.append(self.currentStock)
+            else:
+                existing_stock.get_total_Price()
+                existing_stock.update_amount(s_amount)
+                existing_stock.update_per_Price(int(self.stock_price_blank.get()))
+                existing_stock.update_Total(self.total_price)
+
+                
         self.sub_window.destroy()
         self.update_portfolio_listbox()
     
